@@ -39,7 +39,7 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
         if (!req.file) return res.status(400).json({ detail: 'No file uploaded' });
 
         const newPhoto = new Photo({
-            url: `/uploads/${req.file.filename}`, // Assuming local storage for now
+            url: req.file.path,
             caption: req.body.caption || ''
         });
 

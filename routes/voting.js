@@ -88,7 +88,7 @@ router.post('/candidates', verifyToken, upload.single('photo'), async (req, res)
     if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') return res.status(403).json({ detail: 'Denied' });
     try {
         const { full_name, manifesto, position } = req.body;
-        const photoUrl = req.file ? `/uploads/${req.file.filename}` : null;
+        const photoUrl = req.file ? req.file.path : null;
 
         const candidate = new Candidate({
             full_name,

@@ -23,7 +23,7 @@ router.post('/submit', upload.single('proof'), async (req, res) => {
             payment_method,
             reference_number,
             message: description,
-            proof_url: req.file ? `/uploads/${req.file.filename}` : null,
+            proof_url: req.file ? req.file.path : null,
             status: 'Pending'
         });
 

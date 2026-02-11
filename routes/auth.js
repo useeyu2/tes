@@ -112,8 +112,8 @@ router.post('/profile-picture', upload.single('profile_picture'), async (req, re
         const user = await User.findById(decoded.id);
         if (!user) return res.status(404).json({ detail: 'User not found' });
 
-        // Save relative path
-        const filePath = `/uploads/profiles/${req.file.filename}`;
+        // Save Cloudinary URL
+        const filePath = req.file.path;
         user.profile_picture = filePath;
         await user.save();
 

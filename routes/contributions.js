@@ -163,7 +163,7 @@ router.post('/submit-payment', upload.single('proof'), async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         const { month, months, amount } = req.body;
-        const proofPath = `/uploads/proofs/${req.file.filename}`;
+        const proofPath = req.file.path;
 
         // Handle both single month and multi-month array
         let monthList = [];
