@@ -251,8 +251,8 @@ router.post('/forgot-password', async (req, res) => {
             return res.status(404).json({ detail: 'Email not found' });
         }
 
-        // Generate Token
-        const token = crypto.randomBytes(20).toString('hex');
+        // Generate 6-digit Code
+        const token = Math.floor(100000 + Math.random() * 900000).toString();
         user.resetPasswordToken = token;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();

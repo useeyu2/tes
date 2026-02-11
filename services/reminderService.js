@@ -1,15 +1,19 @@
 const Contribution = require('../models/Contribution');
 const User = require('../models/User');
+const emailService = require('./emailService');
 
 const sendReminders = async () => {
     try {
-        const pending = await Contribution.find({ status: 'Pending' }).populate('user_id');
+        // Find contributions that are 'Due' (generated but not paid)
+        const pending = await Contribution.find({ status: 'Due' }).populate('user_id');
         let count = 0;
 
         for (const contrib of pending) {
-            // In a real system, you would call an SMS/Email API here
-            console.log(`[SIMULATION] Sending reminder to ${contrib.user_id.full_name} (${contrib.user_id.email}) for month ${contrib.month}`);
-            count++;
+            if (contrib.user_id && contrib.user_id.email) {
+                console.log(`[BREVO] Sending reminder to ${contrib.user_id.full_name} (${contrib.user_id.email}) for month ${contrib.month}`);
+                await emailService.sendReminderEmail(contrib.user_id.email, contrib.user_id.full_name, contrib.month);
+                count++;
+            }
         }
 
         return count;
