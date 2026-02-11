@@ -230,7 +230,7 @@ router.patch('/members/:id/status', async (req, res) => {
 const reminderService = require('../services/reminderService');
 
 // Send Reminders to all 'Due' members
-router.post('/reminders/send', async (req, res) => {
+router.post('/trigger-reminders', async (req, res) => {
     try {
         const count = await reminderService.sendReminders();
         res.json({ success: true, message: `Reminders sent to ${count} members` });

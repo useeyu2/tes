@@ -24,9 +24,14 @@
 </head>
 
 <body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()"
+            class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+
         <!-- Sidebar -->
-        <aside class="w-64 glass bg-primary/95 text-white hidden md:flex flex-col border-r border-white/10">
+        <aside id="adminSidebar"
+            class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-8">
                 <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
                 <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
@@ -87,24 +92,38 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <header
-                class="glass bg-white/70 sticky top-0 z-50 p-4 px-8 flex justify-between items-center border-b border-gray-200">
-                <div class="flex items-center gap-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Admin Dashboard</h2>
+                class="glass bg-white/70 sticky top-0 z-50 p-4 px-4 md:px-8 flex justify-between items-center border-b border-gray-200">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <!-- Mobile Hamburger -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
+                    <h2 class="text-lg md:text-xl font-semibold text-gray-800 truncate">Admin Dashboard</h2>
                     <div class="hidden lg:block border-l pl-4 border-gray-200">
                         <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">DEVELOPER</p>
                         <p class="text-xs font-semibold text-gray-600">Developer Usman Umar</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 md:space-x-4">
                     <button onclick="openAddMemberModal()"
-                        class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-800">Add
-                        Member</button>
+                        class="bg-primary text-white p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-blue-800">
+                        <span class="hidden md:inline">Add Member</span>
+                        <span class="md:hidden">➕</span>
+                    </button>
                     <button onclick="exportToCSV()"
-                        class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50">Export
-                        CSV</button>
+                        class="border border-gray-300 text-gray-700 p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-gray-50">
+                        <span class="hidden md:inline">Export CSV</span>
+                        <span class="md:hidden">📥</span>
+                    </button>
                     <button onclick="handleLogout()"
-                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition">🚪
-                        Logout</button>
+                        class="bg-red-500 hover:bg-red-600 text-white p-2 md:px-4 md:py-2 rounded-lg text-sm font-bold transition">
+                        <span class="hidden md:inline">Logout</span>
+                        <span class="md:hidden">🚪</span>
+                    </button>
                 </div>
             </header>
 
@@ -169,18 +188,19 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6 flex items-center justify-between">
-                    <div>
+                <div
+                    class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-center md:text-left">
                         <h4 class="text-blue-800 font-bold">System Status: Active</h4>
-                        <p class="text-blue-600 text-sm">Monthly contribution set to ₦2,000 per member.</p>
+                        <p class="text-blue-600 text-sm">Monthly contribution set to ₦1,500 per member.</p>
                     </div>
-                    <div>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                         <button onclick="triggerMonthly()"
-                            class="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-800 shadow-md transform active:scale-95 transition font-bold">
+                            class="bg-primary text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-blue-800 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
                             🔄 Generate Monthly Dues
                         </button>
                         <button onclick="sendReminders()"
-                            class="bg-orange-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-700 shadow-md transform active:scale-95 transition font-bold ml-2">
+                            class="bg-orange-600 text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-orange-700 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
                             🔔 Send Reminders
                         </button>
                     </div>
@@ -360,7 +380,19 @@
     </div>
 
     <script>
-        // Global store for members 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // Global store for members
         let allMembers = [];
 
         async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
@@ -377,28 +409,32 @@
 
                     const tbody = document.getElementById('membersTable');
                     tbody.innerHTML = allMembers.map(m => `
-                        <tr class="${!m.is_active ? 'bg-gray-50 opacity-75' : ''}">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.full_name}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.email}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-blue-100 text-blue-800">${m.role}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${m.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                    ${m.is_active ? 'Active' : 'Deactivated'}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${m.contribution_score || 0}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-3">
-                                <button onclick="openDetailsModal('${m._id}')" class="text-secondary font-bold hover:underline">View</button>
-                                <button onclick="openEditModal('${m._id}', '${m.role}', '${m.full_name}')" class="text-primary font-bold hover:underline">Edit</button>
-                                <button onclick="toggleMemberStatus('${m._id}', ${m.is_active}, '${m.full_name}')" 
-                                    class="${m.is_active ? 'text-red-500' : 'text-green-500'} font-bold hover:underline">
-                                    ${m.is_active ? 'Deactivate' : 'Reactivate'}
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+    <tr class="${!m.is_active ? 'bg-gray-50 opacity-75' : ''}">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${m.full_name}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.email}</td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span
+                class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-blue-100 text-blue-800">${m.role}</span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span
+                class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${m.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                ${m.is_active ? 'Active' : 'Deactivated'}
+            </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">${m.contribution_score || 0}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-3">
+            <button onclick="openDetailsModal('${m._id}')"
+                class="text-secondary font-bold hover:underline">View</button>
+            <button onclick="openEditModal('${m._id}', '${m.role}', '${m.full_name.replace(/'/g, "\\'")}')"
+                class="text-primary font-bold hover:underline">Edit</button>
+            <button onclick="toggleMemberStatus('${m._id}', ${m.is_active}, '${m.full_name.replace(/'/g, "\\'")}')"
+                class="${m.is_active ? 'text-red-500' : 'text-green-500'} font-bold hover:underline">
+                ${m.is_active ? 'Deactivate' : 'Reactivate'}
+            </button>
+        </td>
+    </tr>
+    `).join('');
                 }
             } catch (e) { console.error(e); }
         }
@@ -409,69 +445,72 @@
             if (!member) return;
 
             const modalHtml = `
-                <div id="detailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 transform transition-all">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800">Member Details</h3>
-                            <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600 transition">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-6 text-sm">
-                            <div>
-                                <p class="text-gray-500 font-medium">Full Name</p>
-                                <p class="text-lg font-bold text-gray-900">${member.full_name}</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Username</p>
-                                <p class="font-bold text-gray-800">${member.username || '-'}</p>
-                            </div>
-                            <div class="col-span-2">
-                                <p class="text-gray-500 font-medium">Email Address</p>
-                                <p class="font-bold text-gray-800">${member.email}</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Phone Number</p>
-                                <p class="font-bold text-gray-800">${member.phone || '-'}</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Graduation Year</p>
-                                <p class="font-bold text-gray-800">${member.graduation_year || '-'}</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Role</p>
-                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-blue-100 text-blue-800">${member.role}</span>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Status</p>
-                                <span class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
-                                    ${member.is_active ? 'Active' : 'Deactivated'}
-                                </span>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Contribution Score</p>
-                                <p class="font-bold text-gray-900">${member.contribution_score || 0} pts</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-500 font-medium">Joined On</p>
-                                <p class="font-bold text-gray-800">${new Date(member.created_at).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                        <div class="mt-8 flex gap-3">
-                            <button onclick="openResetPasswordModal('${member._id}', '${member.full_name}')" 
-                                class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition shadow-lg">
-                                🔑 Reset Password
-                            </button>
-                            <button onclick="closeDetailsModal()" 
-                                class="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition">
-                                Close
-                            </button>
-                        </div>
-                    </div>
+    <div id="detailsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60]">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Member Details</h3>
+                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-6 text-sm">
+                <div>
+                    <p class="text-gray-500 font-medium">Full Name</p>
+                    <p class="text-lg font-bold text-gray-900">${member.full_name}</p>
                 </div>
-            `;
+                <div>
+                    <p class="text-gray-500 font-medium">Username</p>
+                    <p class="font-bold text-gray-800">${member.username || '-'}</p>
+                </div>
+                <div class="col-span-2">
+                    <p class="text-gray-500 font-medium">Email Address</p>
+                    <p class="font-bold text-gray-800">${member.email}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Phone Number</p>
+                    <p class="font-bold text-gray-800">${member.phone || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Graduation Year</p>
+                    <p class="font-bold text-gray-800">${member.graduation_year || '-'}</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Role</p>
+                    <span
+                        class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-blue-100 text-blue-800">${member.role}</span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Status</p>
+                    <span
+                        class="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg ${member.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                        ${member.is_active ? 'Active' : 'Deactivated'}
+                    </span>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Contribution Score</p>
+                    <p class="font-bold text-gray-900">${member.contribution_score || 0} pts</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 font-medium">Joined On</p>
+                    <p class="font-bold text-gray-800">${new Date(member.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+            <div class="mt-8 flex gap-3">
+                <button onclick="openResetPasswordModal('${member._id}', '${member.full_name}')"
+                    class="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition shadow-lg">
+                    🔑 Reset Password
+                </button>
+                <button onclick="closeDetailsModal()"
+                    class="px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
@@ -484,42 +523,45 @@
         function openResetPasswordModal(userId, fullName) {
             closeDetailsModal();
             const modalHtml = `
-                <div id="resetPasswordModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
-                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800">Reset Password</h3>
-                            <button onclick="closeResetPasswordModal()" class="text-gray-400 hover:text-gray-600 transition">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-6">Set a new password for <span class="font-bold text-gray-800">${fullName}</span>.</p>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                                <input type="password" id="newPassword" placeholder="Minimum 6 characters" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                                <input type="password" id="confirmPassword" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
-                            </div>
-                        </div>
-                        <div class="flex gap-3 mt-8">
-                            <button onclick="closeResetPasswordModal()"
-                                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition">
-                                Cancel
-                            </button>
-                            <button onclick="submitPasswordReset('${userId}')"
-                                class="flex-1 px-4 py-3 bg-red-600 rounded-lg text-white font-bold hover:bg-red-700 transition shadow-lg">
-                                Reset Password
-                            </button>
-                        </div>
-                    </div>
+    <div id="resetPasswordModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Reset Password</h3>
+                <button onclick="closeResetPasswordModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-sm text-gray-500 mb-6">Set a new password for <span
+                    class="font-bold text-gray-800">${fullName}</span>.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Minimum 6 characters"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
                 </div>
-            `;
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                    <input type="password" id="confirmPassword"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeResetPasswordModal()"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-bold hover:bg-gray-50 transition">
+                    Cancel
+                </button>
+                <button onclick="submitPasswordReset('${userId}')"
+                    class="flex-1 px-4 py-3 bg-red-600 rounded-lg text-white font-bold hover:bg-red-700 transition shadow-lg">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+    `;
             document.body.insertAdjacentHTML('beforeend', modalHtml);
         }
 
@@ -532,111 +574,90 @@
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
-            if (newPassword.length < 6) return alert('Password must be at least 6 characters long');
-            if (newPassword !== confirmPassword) return alert('Passwords do not match');
-
-            const token = localStorage.getItem('access_token');
+            if (newPassword.length < 6) return alert('Password must be at least 6 characters long'); if (newPassword
+                !== confirmPassword) return alert('Passwords do not match'); const token = localStorage.getItem('access_token');
             try {
                 const res = await fetch(`/api/v1/admin/members/${userId}/reset-password`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ newPassword })
-                });
-
-                if (res.ok) {
-                    alert('Password reset successfully!');
-                    closeResetPasswordModal();
-                } else {
-                    const text = await res.text();
-                    console.error('Server error response:', text);
-                    try {
-                        const error = JSON.parse(text);
-                        alert(error.detail || 'Failed to reset password');
-                    } catch (e) {
-                        alert(`Server Error (${res.status}): ${text.substring(0, 100)}`);
-                    }
+                    method: 'POST', headers:
+                        { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({
+                            newPassword
+                        })
+                }); if (res.ok) { alert('Password reset successfully!'); closeResetPasswordModal(); } else {
+                    const text = await
+                        res.text(); console.error('Server error response:', text); try {
+                            const error = JSON.parse(text);
+                            alert(error.detail || 'Failed to reset password');
+                        } catch (e) {
+                            alert(`Server Error (${res.status}):
+        ${text.substring(0, 100)}`);
+                        }
                 }
             } catch (e) {
-                console.error('Fetch error:', e);
-                alert(`Connection Error: ${e.message}`);
+                console.error('Fetch error:', e); alert(`Connection Error:
+        ${e.message}`);
             }
-        }
-
-        async function toggleMemberStatus(userId, currentIsActive, fullName) {
-            const action = currentIsActive ? 'deactivate' : 'reactivate';
-            if (!confirm(`Are you sure you want to ${action} ${fullName}?`)) return;
-
-            const token = localStorage.getItem('access_token');
-            try {
-                const res = await fetch(`/api/v1/admin/members/${userId}/status`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ is_active: !currentIsActive })
-                });
-
-                if (res.ok) {
-                    alert(`${fullName} has been ${action}d!`);
-                    fetchMembers();
-                } else {
-                    const error = await res.json();
+        } async function toggleMemberStatus(userId, currentIsActive, fullName) {
+            const
+            action = currentIsActive ? 'deactivate' : 'reactivate'; if (!confirm(`Are you sure you want to ${action}
+        ${fullName}?`)) return; const token = localStorage.getItem('access_token'); try {
+                const res = await
+                    fetch(`/api/v1/admin/members/${userId}/status`, {
+                        method: 'PATCH', headers: {
+                            'Authorization': `Bearer
+        ${token}`, 'Content-Type': 'application/json'
+                        }, body: JSON.stringify({ is_active: !currentIsActive })
+                    }); if
+                    (res.ok) { alert(`${fullName} has been ${action}d!`); fetchMembers(); } else {
+                        const error = await res.json();
                     alert(error.detail || `Failed to ${action} user`);
                 }
             } catch (e) {
-                console.error(e);
-                alert('An error occurred');
+                console.error(e); alert('An error occurred');
             }
-        }
-
-        async function fetchStats() {
-            const token = localStorage.getItem('access_token');
-            try {
-                // Monthly Summary
-                const resMonthly = await fetch('/api/v1/reports/summary/monthly', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (resMonthly.ok) {
+        } async function fetchStats() {
+            const token = localStorage.getItem('access_token'); try { // Monthly Summary
+                const resMonthly = await fetch('/api/v1/reports/summary/monthly', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }); if (resMonthly.ok) {
                     const data = await resMonthly.json();
                     document.getElementById('monthlyCollected').textContent = `₦${data.collected.toLocaleString()}`;
                     document.getElementById('monthlyPending').textContent = `₦${data.pending.toLocaleString()}`;
-                }
-
-                // Annual Stats
-                const resAnnual = await fetch('/api/v1/reports/summary/annual', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (resAnnual.ok) {
+                } // Annual Stats
+                const resAnnual = await fetch('/api/v1/reports/summary/annual', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }); if (resAnnual.ok) {
                     const data = await resAnnual.json();
                     document.getElementById('annualTotal').textContent = `₦${data.total.toLocaleString()}`;
                     document.getElementById('annualExpenses').textContent = `₦${data.expenses.toLocaleString()}`;
                     document.getElementById('balance').textContent = `₦${data.balance.toLocaleString()}`;
                 }
-            } catch (e) { console.error(e); }
-        }
-
-        async function fetchAdminDetails() {
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-            try {
-                const res = await fetch('/api/v1/admin/members', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                    const members = await res.json();
-                    // Basic JWT decode to find current user
-                    const base64Url = token.split('.')[1];
-                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                    }).join(''));
-                    const decoded = JSON.parse(jsonPayload);
-
-                    const admin = members.find(m => m._id === decoded.id);
-                    if (admin) {
-                        document.getElementById('sidebarAdminName').textContent = admin.full_name;
-                        document.getElementById('sidebarAdminRole').textContent = admin.role.toUpperCase();
+            } catch (e) {
+                console.error(e);
+            }
+        } async function fetchAdminDetails() {
+            const token = localStorage.getItem('access_token'); if
+                (!token) return; try {
+                    const res = await fetch('/api/v1/admin/members', {
+                        headers: {
+                            'Authorization': `Bearer
+        ${token}`
+                        }
+                    }); if (res.ok) {
+                        const members = await res.json(); // Basic JWT decode to find current user const
+                        base64Url = token.split('.')[1]; const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); const
+                            jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                                return '%' + ('00' +
+                                    c.charCodeAt(0).toString(16)).slice(-2);
+                            }).join('')); const decoded = JSON.parse(jsonPayload); const
+                                admin = members.find(m => m._id === decoded.id);
+                        if (admin) {
+                            document.getElementById('sidebarAdminName').textContent = admin.full_name;
+                            document.getElementById('sidebarAdminRole').textContent = admin.role.toUpperCase();
+                        }
                     }
-                }
-            } catch (e) { console.error(e); }
+                } catch (e) { console.error(e); }
         }
 
         function exportToCSV() {
@@ -677,7 +698,7 @@
         }
 
         async function triggerMonthly() {
-            if (!confirm("Generate monthly dues for all active members (₦2,000 each)?")) return;
+            if (!confirm("Generate monthly dues for all active members (₦1,500 each)?")) return;
             const token = localStorage.getItem('access_token');
             try {
                 const res = await fetch('/api/v1/contributions/generate-monthly', {
@@ -838,20 +859,20 @@
                         tbody.innerHTML = pendingUsers.map(u => {
                             const date = new Date(u.created_at).toLocaleDateString();
                             return `
-            <tr>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${u.full_name}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.email}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.username || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.phone || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
-                    <button onclick="approveUser('${u._id}', '${u.full_name}')"
-                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition transform active:scale-95 shadow">
-                        ✓ Approve
-                    </button>
-                </td>
-            </tr>
-            `;
+        <tr>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${u.full_name}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.email}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.username || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${u.phone || '-'}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">
+                <button onclick="approveUser('${u._id}', '${u.full_name}')"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition transform active:scale-95 shadow">
+                    ✓ Approve
+                </button>
+            </td>
+        </tr>
+        `;
                         }).join('');
                     } else {
                         pendingSection.classList.add('hidden');
