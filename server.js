@@ -26,6 +26,10 @@ app.set('views', path.join(__dirname, 'views'));
 // Database Connection
 console.log('Attempting to connect to MongoDB...');
 const connectDB = async () => {
+    if (!process.env.MONGODB_URL) {
+        console.error('❌ MONGODB_URL is missing in environment variables!');
+        return;
+    }
     try {
         await mongoose.connect(process.env.MONGODB_URL, {
             serverSelectionTimeoutMS: 5000,
@@ -58,7 +62,6 @@ app.use('/api/v1/reports', require('./routes/reports'));
 app.use('/api/v1/activity', require('./routes/activity'));
 app.use('/api/v1/donations', require('./routes/donations'));
 app.use('/api/v1/messages', require('./routes/messages'));
-app.use('/api/v1/super-admin', require('./routes/superAdmin'));
 app.use('/api/v1/super-admin', require('./routes/superAdmin'));
 app.use('/api/v1/events', require('./routes/events'));
 app.use('/api/v1/gallery', require('./routes/gallery'));

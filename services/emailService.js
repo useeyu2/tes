@@ -1,7 +1,9 @@
 const brevo = require('@getbrevo/brevo');
 
 const apiInstance = new brevo.TransactionalEmailsApi();
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+if (process.env.BREVO_API_KEY) {
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+}
 
 const sendResetEmail = async (to, tokenOrCode) => {
     // Determine if it's a code (6 digits) or a token (longer hex)

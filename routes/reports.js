@@ -23,7 +23,7 @@ router.get('/summary/monthly', async (req, res) => {
         res.json({
             collected: verified[0]?.total || 0,
             pending: pending[0]?.total || 0,
-            target: 2000 * (await User.countDocuments({ role: 'Member' }))
+            target: 1500 * (await User.countDocuments({ role: 'Member' }))
         });
     } catch (e) {
         res.status(500).json({ detail: e.message });
