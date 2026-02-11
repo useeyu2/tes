@@ -4,7 +4,7 @@
     "description": "Alumni Contribution System - Node.js Migration",
     "main": "server.js",
     "engines": {
-        "node": "18.x"
+        "node": "22.x"
     },
     "scripts": {
         "start": "node server.js",
