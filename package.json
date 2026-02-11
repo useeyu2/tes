@@ -3,6 +3,9 @@
     "version": "1.0.0",
     "description": "Alumni Contribution System - Node.js Migration",
     "main": "server.js",
+    "engines": {
+        "node": "18.x"
+    },
     "scripts": {
         "start": "node server.js",
         "dev": "node --watch server.js"
