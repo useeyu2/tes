@@ -6,7 +6,7 @@ router.get('/', (req, res) => res.redirect('/login'));
 router.get('/login', (req, res) => res.render('auth/login'));
 router.get('/register', (req, res) => res.render('auth/register'));
 router.get('/forgot-password', (req, res) => res.render('auth/forgot_password'));
-router.get('/reset-password/:token', (req, res) => res.render('auth/reset_password', { token: req.params.token }));
+router.get('/reset-password/:token?', (req, res) => res.render('auth/reset_password', { token: req.params.token || '' }));
 
 // Member
 router.get('/dashboard', (req, res) => res.render('member/dashboard'));
