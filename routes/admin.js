@@ -227,7 +227,16 @@ router.patch('/members/:id/status', async (req, res) => {
     }
 });
 
-// Approval route follows below...
-// (removing the duplicate block at the end if it exists)
+const reminderService = require('../services/reminderService');
+
+// Send Reminders to all 'Due' members
+router.post('/reminders/send', async (req, res) => {
+    try {
+        const count = await reminderService.sendReminders();
+        res.json({ success: true, message: `Reminders sent to ${count} members` });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
 
 module.exports = router;
