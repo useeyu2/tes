@@ -37,7 +37,7 @@ async function verifyDuplicateCheck() {
         // Manually submit one first to create the duplicate condition
         const formData1 = new FormData();
         formData1.append('months', '2026-06');
-        formData1.append('amount', '2000');
+        formData1.append('amount', '1500');
         const blob1 = new Blob([fs.readFileSync('dummy_proof.png')], { type: 'image/png' });
         formData1.append('proof', blob1, 'dummy_proof.png');
 
@@ -55,7 +55,7 @@ async function verifyDuplicateCheck() {
     // 3. Attempt to Submit Duplicate Payment
     const formData = new FormData();
     formData.append('months', duplicateMonth.month); // Use the variable, not duplicateMonth.month inside the else block
-    formData.append('amount', '2000');
+    formData.append('amount', '1500');
     // Create a dummy file for upload using Blob
     const blob = new Blob([fs.readFileSync('dummy_proof.png')], { type: 'image/png' });
     formData.append('proof', blob, 'dummy_proof.png');

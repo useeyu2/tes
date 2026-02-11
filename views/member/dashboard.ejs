@@ -349,7 +349,7 @@
 
                     // Display notifications for due contributions
                     if (dueContributions.length > 0) {
-                        const totalDue = dueContributions.reduce((sum, c) => sum + (c.amount || 2000), 0);
+                        const totalDue = dueContributions.reduce((sum, c) => sum + (c.amount || 1500), 0);
                         const notificationsSection = document.getElementById('notificationsSection');
                         const duesNotification = document.getElementById('duesNotification');
                         const remindersNotification = document.getElementById('remindersNotification');

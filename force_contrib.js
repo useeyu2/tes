@@ -38,7 +38,7 @@ async function forceContribution() {
                 user_id: user._id,
                 month,
                 year: today.getFullYear(),
-                amount_due: 2000,
+                amount_due: 1500,
                 status: 'Due',
                 due_date: new Date(today.getFullYear(), today.getMonth() + 1, 5)
             });
