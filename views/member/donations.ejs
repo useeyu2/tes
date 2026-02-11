@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Donation - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#1e40af' } } } }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(#1e3a8a 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
+    <div class="flex flex-col min-h-screen">
+        <header
+            class="glass bg-white/70 sticky top-0 z-50 p-4 flex justify-between items-center border-b border-gray-200 px-8">
+            <h1 class="text-xl font-extrabold text-primary tracking-tight">DONATION PORTAL</h1>
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="text-sm text-gray-600 hover:text-primary font-bold transition">←
+                    Dashboard</a>
+                <button onclick="handleLogout()"
+                    class="text-sm bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6 lg:p-12">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- Welcome Section -->
+                <div class="glass rounded-[2rem] p-8 shadow-xl border border-primary/10">
+                    <h2 class="text-2xl font-black text-primary mb-4">Welcome to the Donation Portal!</h2>
+                    <p class="text-gray-600 font-medium leading-relaxed">
+                        This is a dedicated space where you can contribute any amount you wish towards our alumni
+                        initiatives,
+                        separate from the mandatory monthly contributions. Your generosity plays a vital role in our
+                        growth.
+                        We sincerely thank you for your kindness; may you be richly rewarded.
+                    </p>
+
+                    <div class="mt-8 p-6 bg-primary/5 rounded-2xl border border-primary/10">
+                        <h3 class="text-[10px] font-black uppercase tracking-widest text-primary mb-4 italic">Official
+                            Donation Account</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Bank Name</p>
+                                <p class="font-black text-gray-800">Alumni Trust Bank</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Account Name</p>
+                                <p class="font-black text-gray-800">SKOSA Alumni Fund</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-gray-400">Account Number</p>
+                                <p class="font-black text-primary text-xl">0123456789</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-[2rem] p-8 shadow-xl">
+                    <h2 class="text-xl font-black text-gray-900 mb-6">Submit Your Donation Proof</h2>
+
+                    <form id="donationForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Donation
+                                    Amount (₦)</label>
+                                <input type="number" name="amount" required placeholder="Enter amount"
+                                    class="w-full bg-white/50 border border-gray-200 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-primary outline-none transition font-bold">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Payment
+                                    Method</label>
+                                <select name="payment_method"
+                                    class="w-full bg-white/50 border border-gray-200 rounded-2xl px-6 py-4 outline-none font-bold">
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Cash">Cash / POS</option>
+                                    <option value="Online">Online Payment</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Reference
+                                Number (Optional)</label>
+                            <input type="text" name="reference_number" placeholder="Transaction ID / Ref"
+                                class="w-full bg-white/50 border border-gray-200 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-primary outline-none transition font-bold">
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Motivation
+                                / Message (Optional)</label>
+                            <textarea name="description" rows="3" placeholder="Why are you donating?"
+                                class="w-full bg-white/50 border border-gray-200 rounded-2xl px-6 py-4 focus:ring-2 focus:ring-primary outline-none transition font-bold"></textarea>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Upload
+                                Proof of Payment</label>
+                            <div class="relative group">
+                                <input type="file" name="proof" id="proofInput" class="hidden"
+                                    accept=".jpg,.jpeg,.png,.pdf">
+                                <label for="proofInput"
+                                    class="flex items-center justify-center w-full bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl px-6 py-10 cursor-pointer hover:bg-white hover:border-primary transition group">
+                                    <div class="text-center">
+                                        <span class="text-3xl mb-2 block group-hover:scale-110 transition">📄</span>
+                                        <p id="fileName" class="text-sm font-bold text-gray-500">Click to upload receipt
+                                        </p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="submitBtn"
+                            class="w-full bg-primary text-white py-5 rounded-[1.5rem] font-black text-lg shadow-2xl shadow-blue-500/30 hover:bg-blue-800 transition transform active:scale-95">
+                            CONFIRM DONATION
+                        </button>
+                    </form>
+                </div>
+
+                <!-- History -->
+                <div class="glass rounded-[2rem] shadow-xl overflow-hidden border border-gray-100">
+                    <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-white/50">
+                        <h2 class="text-xl font-black text-gray-900 tracking-tight">MY DONATION HISTORY</h2>
+                        <button onclick="loadDonations()"
+                            class="text-primary font-black text-[10px] uppercase tracking-widest hover:underline">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50/50">
+                                <tr>
+                                    <th
+                                        class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Date & Time</th>
+                                    <th
+                                        class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Amount</th>
+                                    <th
+                                        class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Method</th>
+                                    <th
+                                        class="px-8 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="donationTable" class="bg-white/30 divide-y divide-gray-100">
+                                <tr>
+                                    <td colspan="4" class="px-8 py-12 text-center text-gray-400 font-bold italic">
+                                        Loading your contribution history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-primary/20 backdrop-blur-sm hidden">
+        <div id="modalContent"
+            class="glass bg-white rounded-[2.5rem] p-12 max-w-sm w-full text-center shadow-2xl transition-all transform scale-95 opacity-0">
+            <div
+                class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-6 shadow-lg shadow-green-500/30">
+                ✅</div>
+            <h3 class="text-2xl font-black text-gray-900 mb-2">THANK YOU!</h3>
+            <p class="text-gray-500 font-medium mb-8">Your donation has been submitted for verification. We appreciate
+                your support!</p>
+            <button onclick="closeModalAndRefresh()"
+                class="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-xl hover:bg-blue-800 transition">BACK
+                TO DASHBOARD</button>
+        </div>
+    </div>
+
+    <script>
+        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+
+        function closeModalAndRefresh() {
+            document.getElementById('successModal').classList.add('hidden');
+            loadDonations();
+        }
+
+        async function loadDonations() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/activity/recent', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const allActivity = await res.json();
+                    // Filter for donations only
+                    const donations = allActivity.filter(a => a.category === 'Donation' || a.title.includes('Donation'));
+
+                    const tbody = document.getElementById('donationTable');
+                    if (donations.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="px-8 py-12 text-center text-gray-400 font-bold italic">No donation history found yet.</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = donations.map(d => `
+                        <tr class="hover:bg-white/50 transition">
+                            <td class="px-8 py-5 flex flex-col">
+                                <span class="text-sm font-black text-gray-900">${new Date(d.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                <span class="text-[10px] font-bold text-gray-400 -mt-1 uppercase">${new Date(d.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </td>
+                            <td class="px-8 py-5 whitespace-nowrap text-sm font-black text-gray-900">₦${parseFloat(d.subtitle.split('₦')[1]).toLocaleString()}</td>
+                            <td class="px-8 py-5 whitespace-nowrap text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank Transfer</td>
+                            <td class="px-8 py-5 whitespace-nowrap">
+                                <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${d.status === 'Verified' || d.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                            d.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                        }">${d.status}</span>
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('proofInput').addEventListener('change', e => {
+            const fileName = e.target.files[0]?.name || "Click to upload receipt";
+            document.getElementById('fileName').innerText = fileName + " ✅";
+        });
+
+        document.getElementById('donationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-spin mr-2">⏳</span> PROCESSING...';
+
+            const formData = new FormData(e.target);
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const res = await fetch('/api/v1/donations/submit', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    const modal = document.getElementById('successModal');
+                    const content = document.getElementById('modalContent');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        content.classList.remove('scale-95', 'opacity-0');
+                        content.classList.add('scale-100', 'opacity-100');
+                    }, 10);
+                    e.target.reset();
+                    document.getElementById('fileName').innerText = "Click to upload receipt";
+                } else {
+                    const err = await res.json();
+                    alert("Submission failed: " + (err.detail || "Unknown error"));
+                }
+            } catch (e) {
+                console.error(e);
+                alert("An error occurred.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'CONFIRM DONATION';
+            }
+        });
+
+        loadDonations();
+    </script>
+</body>
+
+</html>

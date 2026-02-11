@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity History - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a' } } } }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(#1e3a8a 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
+    <div class="flex flex-col min-h-screen">
+        <header
+            class="glass bg-white/70 sticky top-0 z-50 p-4 flex justify-between items-center border-b border-gray-200 px-8">
+            <h1 class="text-xl font-extrabold text-primary tracking-tight uppercase">Activity History</h1>
+            <div class="flex items-center gap-4">
+                <a href="/dashboard" class="text-sm text-gray-600 hover:text-primary font-bold transition">←
+                    Dashboard</a>
+                <button onclick="handleLogout()"
+                    class="text-sm bg-red-50 text-red-600 px-4 py-2 rounded-xl font-bold">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6 lg:p-12">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <div class="glass rounded-[2.5rem] p-8 shadow-xl">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-black text-gray-900 tracking-tight">ALL ACTIVITIES</h2>
+                            <p class="text-gray-500 font-medium">Trace every payment, welfare request, and donation.</p>
+                        </div>
+                        <button onclick="loadHistory()"
+                            class="bg-primary/5 text-primary px-4 py-2 rounded-xl font-bold text-xs">REFRESH</button>
+                    </div>
+
+                    <div id="historyList" class="space-y-4">
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="rounded-full bg-gray-200 h-10 w-10"></div>
+                            <div class="flex-1 space-y-6 py-1">
+                                <div class="h-2 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+
+        async function loadHistory() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/activity/all', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const list = document.getElementById('historyList');
+                    if (data.length === 0) {
+                        list.innerHTML = '<p class="text-center text-gray-400 font-bold py-12">No activity recorded yet.</p>';
+                        return;
+                    }
+
+                    list.innerHTML = data.map(act => `
+                        <div class="flex items-center gap-4 p-5 bg-white/50 rounded-3xl border border-blue-50 hover:border-primary/20 transition group">
+                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-sm ${act.type === 'payment' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                        }">
+                                ${act.type === 'payment' ? '💳' : '✨'}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-gray-900 uppercase tracking-tight">${act.title}</h4>
+                                    <div class="text-right">
+                                        <p class="text-[10px] font-black text-gray-400 uppercase">${new Date(act.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase">${new Date(act.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-500 font-medium">${act.subtitle}</p>
+                                <div class="mt-2 flex items-center justify-between">
+                                    <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${act.status === 'Verified' || act.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                            act.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                        }">
+                                        ${act.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        loadHistory();
+    </script>
+</body>
+
+</html>

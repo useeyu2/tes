@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messages - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a' } } } }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-bubble-member {
+            background: #f3f4f6;
+            color: #111827;
+            border-radius: 1.5rem 1.5rem 1.5rem 0;
+        }
+
+        .chat-bubble-admin {
+            background: #1e3a8a;
+            color: white;
+            border-radius: 1.5rem 1.5rem 0 1.5rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 min-h-screen">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <div class="p-6 border-b border-gray-100">
+                <h1 class="text-xl font-black text-primary uppercase">Conversations</h1>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="p-4 border-b border-gray-50">
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+                    <input type="text" id="memberSearch" placeholder="Search members..."
+                        class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/10 transition font-medium">
+                </div>
+            </div>
+
+            <div id="conversationList" class="flex-1 overflow-y-auto">
+                <div class="p-8 text-center text-gray-400 font-medium tracking-tight">Loading...</div>
+            </div>
+        </aside>
+
+        <!-- Chat Area -->
+        <main class="flex-1 flex flex-col bg-gray-50">
+            <header id="chatHeader"
+                class="bg-white border-b border-gray-200 p-6 flex justify-between items-center h-20">
+                <h2 class="font-black text-gray-900 uppercase">Select a member to chat</h2>
+                <a href="/admin/dashboard" class="text-sm font-bold text-primary">← Admin Panel</a>
+            </header>
+
+            <div id="chatWindow" class="flex-1 overflow-y-auto p-8 space-y-4">
+                <div class="h-full flex items-center justify-center text-gray-400 font-medium flex-col gap-4">
+                    <div class="text-6xl">📥</div>
+                    <p>Select a member from the left to view messages</p>
+                </div>
+            </div>
+
+            <footer id="inputArea" class="bg-white border-t border-gray-200 p-6 hidden">
+                <form id="replyForm" class="flex gap-4">
+                    <input type="hidden" id="activeMemberId">
+                    <input type="text" id="replyInput" required placeholder="Type your reply..."
+                        class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-6 py-4 focus:outline-none focus:ring-2 focus:ring-primary/20 transition font-medium">
+                    <button type="submit"
+                        class="bg-primary text-white px-8 py-4 rounded-2xl font-black shadow-lg hover:bg-blue-800 transition">
+                        REPLY
+                    </button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        let currentMemberId = null;
+        let allConversations = [];
+        let allMembers = [];
+
+        async function loadData() {
+            const token = localStorage.getItem('access_token');
+            try {
+                // Fetch active conversations
+                const convRes = await fetch('/api/v1/messages/admin/conversations', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                // Fetch all members (for new chats)
+                const membersRes = await fetch('/api/v1/admin/members', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (convRes.ok) allConversations = await convRes.json();
+                if (membersRes.ok) allMembers = await membersRes.json();
+
+                renderSidebar();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('conversationList').innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Failed to load data</div>';
+            }
+        }
+
+        function renderSidebar(searchTerm = '') {
+            const list = document.getElementById('conversationList');
+            const term = searchTerm.toLowerCase().trim();
+
+            let displayedList = [];
+
+            if (!term) {
+                // Show active conversations if no search
+                displayedList = allConversations;
+            } else {
+                // Filter all members by name or email
+                displayedList = allMembers.filter(m =>
+                    m.full_name?.toLowerCase().includes(term) ||
+                    m.email?.toLowerCase().includes(term)
+                ).map(m => {
+                    // Try to finding an existing conversation for this member
+                    const existing = allConversations.find(c => c._id === m._id);
+                    return existing || { ...m, last_message: null, unread_count: 0 };
+                });
+            }
+
+            if (displayedList.length === 0) {
+                list.innerHTML = '<p class="p-8 text-center text-gray-400 font-medium">No matches found.</p>';
+                return;
+            }
+
+            list.innerHTML = displayedList.map(c => `
+                <div onclick="selectConversation('${c._id}', '${c.full_name}')" 
+                    class="p-6 border-b border-gray-50 hover:bg-blue-50 cursor-pointer transition flex items-center gap-4 ${currentMemberId === c._id ? 'bg-blue-50 border-l-4 border-l-primary' : ''}">
+                    <div class="relative">
+                        <img src="${c.profile_picture || '/img/default-avatar.png'}" class="w-12 h-12 rounded-xl object-cover bg-gray-100">
+                        ${term && !allConversations.find(ac => ac._id === c._id) ? '<span class="absolute -top-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-white shadow-sm" title="New contact"></span>' : ''}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <h4 class="font-bold text-gray-900 truncate tracking-tight">${c.full_name}</h4>
+                        <p class="text-xs text-gray-500 truncate font-medium">${c.last_message?.content || (term ? 'Start a new chat' : 'No messages')}</p>
+                    </div>
+                    ${c.unread_count > 0 ? `<span class="bg-primary text-white text-[10px] font-black px-2 py-1 rounded-full">${c.unread_count}</span>` : ''}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('memberSearch').addEventListener('input', (e) => {
+            renderSidebar(e.target.value);
+        });
+
+        async function selectConversation(id, name) {
+            currentMemberId = id;
+            document.getElementById('activeMemberId').value = id;
+            document.getElementById('chatHeader').querySelector('h2').textContent = `Chatting with ${name}`;
+            document.getElementById('inputArea').classList.remove('hidden');
+            loadMessages(id);
+
+            // If it was a search, clear it to show active chats again
+            const searchInput = document.getElementById('memberSearch');
+            if (searchInput.value) {
+                // Keep the current selection visual even after closing search
+                setTimeout(() => {
+                    // Force refresh active list but keep selection
+                    // searchInput.value = '';
+                    // loadData(); 
+                }, 100);
+            }
+        }
+
+        async function loadMessages(id) {
+            if (!id) return;
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch(`/api/v1/messages/admin/user/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const messages = await res.json();
+                    const win = document.getElementById('chatWindow');
+                    if (messages.length === 0) {
+                        win.innerHTML = `<div class="h-full flex items-center justify-center text-gray-400 font-medium flex-col gap-4">
+                            <div class="text-6xl">💬</div>
+                            <p>No messages yet. Start the conversation!</p>
+                        </div>`;
+                    } else {
+                        win.innerHTML = messages.map(m => `
+                            <div class="flex ${m.sender_role === 'Admin' ? 'justify-end' : 'justify-start'}">
+                                <div class="max-w-[70%] px-6 py-4 shadow-sm ${m.sender_role === 'Admin' ? 'chat-bubble-admin' : 'chat-bubble-member'}">
+                                    <p class="text-sm font-medium leading-relaxed">${m.content}</p>
+                                    <p class="text-[9px] mt-2 opacity-60 font-black uppercase text-right">
+                                        ${new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    win.scrollTop = win.scrollHeight;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('replyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('replyInput');
+            const content = input.value.trim();
+            if (!content || !currentMemberId) return;
+
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/messages/admin/reply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ receiver_id: currentMemberId, content })
+                });
+                if (res.ok) {
+                    input.value = '';
+                    loadMessages(currentMemberId);
+                    loadData(); // Refresh list to update last message
+                }
+            } catch (e) { console.error(e); }
+        });
+
+        loadData();
+        setInterval(() => loadMessages(currentMemberId), 5000);
+        setInterval(loadData, 15000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#1e40af' } } } }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar Placeholder (You might want to include the actual sidebar partial or code here) -->
+        <aside class="w-64 bg-slate-900 text-white hidden md:flex flex-col relative z-20 shadow-2xl">
+            <div class="p-6 flex items-center justify-between border-b border-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <span class="text-xl font-black text-white">S</span>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight text-white">SKOSA</h1>
+                        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Member Panel</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+                <div class="px-3 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Main Menu</div>
+
+                <a href="/dashboard"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all group">
+                    <i class="fas fa-home w-5 h-5 opacity-70 group-hover:text-emerald-400 transition-colors"></i>
+                    Dashboard
+                </a>
+
+                <a href="/events"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/20 border border-blue-400/20 group">
+                    <i class="fas fa-calendar-alt w-5 h-5 text-white"></i>
+                    Events
+                </a>
+
+                <a href="/directory"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all group">
+                    <i class="fas fa-users w-5 h-5 opacity-70 group-hover:text-purple-400 transition-colors"></i>
+                    Directory
+                </a>
+            </nav>
+
+            <div class="p-4 border-t border-slate-800/50">
+                <a href="/settings"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/50 transition-all group mb-2">
+                    <i class="fas fa-cog w-5 h-5 opacity-70 group-hover:text-gray-400 transition-colors"></i>
+                    Settings
+                </a>
+                <button onclick="localStorage.removeItem('access_token'); window.location.href='/login'"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all group">
+                    <i class="fas fa-sign-out-alt w-5 h-5 opacity-70 group-hover:text-red-400 transition-colors"></i>
+                    Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full bg-slate-50 relative overflow-y-auto">
+            <!-- Header -->
+            <header
+                class="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-10 px-8 py-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Upcoming Events</h2>
+                    <p class="text-sm text-slate-500 font-medium">Reunions, Meetings, and Gatherings</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="h-10 w-10 rounded-full bg-slate-200 animate-pulse" id="userAvatar"></div>
+                </div>
+            </header>
+
+            <div class="p-8 max-w-7xl mx-auto w-full">
+                <!-- Events Grid -->
+                <div id="eventsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Loading State -->
+                    <div class="col-span-full text-center py-20 text-gray-500 animate-pulse">
+                        Loading events...
+                    </div>
+                </div>
+
+                <!-- Empty State (Hidden by default) -->
+                <div id="emptyState" class="hidden text-center py-20">
+                    <div
+                        class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500 text-3xl">
+                        📅</div>
+                    <h3 class="text-xl font-bold text-gray-800">No Upcoming Events</h3>
+                    <p class="text-gray-500 mt-2">Check back later for updates on reunions and meetings.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = '/login';
+
+        // Load User Info
+        fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(res => res.json())
+            .then(user => {
+                if (user.profile_picture) {
+                    document.getElementById('userAvatar').style.backgroundImage = `url('${user.profile_picture}')`;
+                    document.getElementById('userAvatar').style.backgroundSize = 'cover';
+                    document.getElementById('userAvatar').classList.remove('animate-pulse', 'bg-slate-200');
+                }
+            });
+
+        // Load Events
+        async function loadEvents() {
+            try {
+                const res = await fetch('/api/v1/events', { headers: { 'Authorization': `Bearer ${token}` } });
+                const events = await res.json();
+                const grid = document.getElementById('eventsGrid');
+                const empty = document.getElementById('emptyState');
+
+                if (events.length === 0) {
+                    grid.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                grid.innerHTML = ''; // Clear loading
+
+                // Fetch user ID to check RSVP status
+                const userRes = await fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                const user = await userRes.json();
+                const currentUserId = user._id;
+
+                events.forEach(event => {
+                    const date = new Date(event.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const isRsvp = event.rsvps.includes(currentUserId);
+
+                    const card = `
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden hover:scale-[1.02] transition-transform duration-300 flex flex-col h-full border border-slate-100">
+                            <div class="h-48 bg-gray-200 relative">
+                                ${event.imageUrl ? `<img src="${event.imageUrl}" class="w-full h-full object-cover">` :
+                            `<div class="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-5xl font-black tracking-widest opacity-90">SKOSA</div>`}
+                                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-bold shadow-md text-slate-800">
+                                    ${event.rsvps.length} Going
+                                </div>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col">
+                                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">${date} • ${event.time || 'TBA'}</span>
+                                <h3 class="text-xl font-black text-slate-800 leading-tight mb-2">${event.title}</h3>
+                                <p class="text-sm text-slate-500 font-medium mb-4 flex items-center gap-2">
+                                     <i class="fas fa-map-marker-alt text-red-400"></i> ${event.location || 'TBA'}
+                                </p>
+                                <p class="text-slate-600 text-sm leading-relaxed mb-6 line-clamp-3">${event.description || 'No description provided.'}</p>
+                                
+                                <div class="mt-auto pt-4 border-t border-slate-100">
+                                    <button onclick="toggleRsvp('${event._id}', this)" 
+                                        class="w-full py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${isRsvp ? 'bg-red-50 text-red-600 border border-red-100 hover:bg-red-100' : 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:shadow-xl'}">
+                                        ${isRsvp ? '<i class="fas fa-times"></i> Cancel RSVP' : '<i class="fas fa-check"></i> Count Me In'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += card;
+                });
+            } catch (e) {
+                console.error(e);
+                alert('Error loading events');
+            }
+        }
+
+        async function toggleRsvp(eventId, btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/v1/events/${eventId}/rsvp`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Reload to refresh UI and counts (simple way)
+                    loadEvents();
+                } else {
+                    alert(data.detail || 'Failed to RSVP');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Try Again';
+                }
+            } catch (e) {
+                console.error(e);
+                btn.disabled = false;
+            }
+        }
+
+        loadEvents();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Alumni Contribution{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-100">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-primary text-white hidden md:block">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold">Admin Panel</h2>
+        </div>
+        <nav class="mt-6">
+            <a href="#" class="block py-3 px-6 bg-secondary text-white">
+                <span class="inline-block mr-2">👥</span> Members
+            </a>
+            <a href="#" class="block py-3 px-6 hover:bg-blue-800 transition-colors text-white/80">
+                <span class="inline-block mr-2">💰</span> Contributions
+            </a>
+            <a href="#" class="block py-3 px-6 hover:bg-blue-800 transition-colors text-white/80">
+                <span class="inline-block mr-2">📊</span> Reports
+            </a>
+            <a href="#" onclick="handleLogout()"
+                class="block py-3 px-6 hover:bg-blue-800 transition-colors text-white/80 mt-10">
+                <span class="inline-block mr-2">🚪</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white shadow p-4 flex justify-between items-center">
+            <h2 class="text-xl font-semibold text-gray-800">Member Management</h2>
+            <div class="flex items-center space-x-4">
+                <span id="adminName" class="text-gray-600 font-medium">Admin</span>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow p-6 border-l-4 border-primary">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-primary">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500">Total Members</p>
+                            <p class="text-2xl font-bold text-gray-800" id="totalMembers">--</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- More stats can go here -->
+            </div>
+
+            <!-- Member List -->
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800">All Members</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" placeholder="Search members..."
+                            class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition">Add
+                            Member</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Grad Year</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Role</th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th>
+                                <th
+                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membersTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function fetchMembers() {
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = '/login';
+
+        try {
+            const response = await fetch('/api/v1/admin/members', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const members = await response.json();
+                document.getElementById('totalMembers').innerText = members.length;
+
+                const tbody = document.getElementById('membersTableBody');
+                tbody.innerHTML = members.map(m => `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
+                                    ${m.full_name.charAt(0)}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">${m.full_name}</div>
+                                    <div class="text-sm text-gray-500">${m.email}</div>
+                                    ${m.phone ? `<div class="text-xs text-gray-400">${m.phone}</div>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.graduation_year || '-'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${m.role}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${m.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${m.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <a href="#" class="text-primary hover:text-blue-900 mr-3">Edit</a>
+                            <a href="#" class="text-red-600 hover:text-red-900">Disable</a>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error('Failed to fetch members', err);
+        }
+    }
+
+    // Init
+    fetchMembers();
+</script>
+{% endblock %}

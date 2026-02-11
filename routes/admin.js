@@ -1,0 +1,233 @@
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
+const { isAdmin } = require('../middlewares/authMiddleware');
+const bcrypt = require('bcryptjs');
+
+router.use(isAdmin);
+
+// Create New Member
+router.post('/members', async (req, res) => {
+    try {
+        const { full_name, username, email, phone, password } = req.body;
+
+        // Validate required fields
+        if (!full_name || !username || !email || !phone || !password) {
+            return res.status(400).json({ detail: 'All fields are required' });
+        }
+
+        // Check for duplicates
+        const existingUser = await User.findOne({
+            $or: [{ email }, { username }, { phone }]
+        });
+
+        if (existingUser) {
+            if (existingUser.email === email) return res.status(400).json({ detail: 'Email already exists' });
+            if (existingUser.username === username) return res.status(400).json({ detail: 'Username already exists' });
+            if (existingUser.phone === phone) return res.status(400).json({ detail: 'Phone number already exists' });
+        }
+
+        const hashed_password = bcrypt.hashSync(password, 10);
+        const newUser = new User({
+            full_name,
+            username,
+            email,
+            phone,
+            hashed_password,
+            role: 'Member',
+            is_approved: true, // Auto-approve admin created users
+            is_active: true
+        });
+
+        await newUser.save();
+
+        res.json({
+            success: true,
+            message: 'Member created successfully',
+            user: {
+                _id: newUser._id,
+                full_name: newUser.full_name,
+                email: newUser.email,
+                role: newUser.role
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Get All Members
+router.get('/members', async (req, res) => {
+    try {
+        const members = await User.find().select('-hashed_password');
+        res.json(members);
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Get Pending Transactions
+router.get('/transactions', async (req, res) => {
+    try {
+        const { status } = req.query;
+        const query = status ? { status } : {};
+
+        const txs = await Transaction.find(query)
+            .populate('user_id', 'email full_name')
+            .sort({ created_at: -1 });
+
+        // Flatten for frontend
+        const result = txs.map(tx => ({
+            _id: tx._id,
+            user_id: tx.user_id._id,
+            user_email: tx.user_id.email,
+            amount: tx.amount,
+            payment_method: tx.payment_method,
+            reference_number: tx.reference_number,
+            created_at: tx.created_at,
+            contribution_id: tx.contribution_id
+        }));
+
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Update Member Role
+router.patch('/members/:memberId/role', async (req, res) => {
+    try {
+        const { memberId } = req.params;
+        const { role } = req.body;
+
+        // Validate role
+        const allowedRoles = ['Member', 'Admin', 'SuperAdmin'];
+        if (!role || !allowedRoles.includes(role)) {
+            return res.status(400).json({ detail: 'Invalid role. Must be one of: ' + allowedRoles.join(', ') });
+        }
+
+        // Find and update user using findByIdAndUpdate to bypass full validation (e.g. missing username on legacy docs)
+        const user = await User.findByIdAndUpdate(
+            memberId,
+            { role: role },
+            { new: true, runValidators: false } // Disable validation to allow legacy users without username
+        );
+
+        if (!user) {
+            return res.status(404).json({ detail: 'User not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'Role updated successfully',
+            user: {
+                _id: user._id,
+                full_name: user.full_name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Reset Member Password
+router.post('/members/:id/reset-password', async (req, res) => {
+    console.log(`[ADMIN] Password reset requested for user ID: ${req.params.id}`);
+    try {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ detail: 'Password must be at least 6 characters long' });
+        }
+
+        const hashed_password = bcrypt.hashSync(newPassword, 10);
+        const user = await User.findByIdAndUpdate(id, { hashed_password }, { new: true });
+
+        if (!user) return res.status(404).json({ detail: 'User not found' });
+
+        res.json({ success: true, message: 'Password reset successfully' });
+    } catch (e) {
+        console.error('[ADMIN] Password reset error:', e);
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Get Pending Users (not approved)
+router.get('/pending-users', async (req, res) => {
+    try {
+        const pendingUsers = await User.find({ is_approved: false }).select('-hashed_password');
+        res.json(pendingUsers);
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Approve User
+router.patch('/users/:id/approve', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            { is_approved: true },
+            { new: true, runValidators: false }
+        );
+
+        if (!user) {
+            return res.status(404).json({ detail: 'User not found' });
+        }
+
+        res.json({
+            success: true,
+            message: 'User approved successfully',
+            user: {
+                _id: user._id,
+                full_name: user.full_name,
+                email: user.email,
+                role: user.role,
+                is_approved: user.is_approved
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Toggle Member Status (Activate/Deactivate)
+router.patch('/members/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_active } = req.body;
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            { is_active },
+            { new: true, runValidators: false }
+        );
+
+        if (!user) {
+            return res.status(404).json({ detail: 'User not found' });
+        }
+
+        res.json({
+            success: true,
+            message: `User ${is_active ? 'activated' : 'deactivated'} successfully`,
+            user: {
+                _id: user._id,
+                full_name: user.full_name,
+                is_active: user.is_active
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+// Approval route follows below...
+// (removing the duplicate block at the end if it exists)
+
+module.exports = router;

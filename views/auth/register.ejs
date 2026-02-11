@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join SKOSA 2020 - Alumni Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a192f 0%, #112240 40%, #1a365d 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Developer Credit Banner */
+        .dev-banner {
+            background: linear-gradient(90deg, #374151 0%, #4b5563 50%, #374151 100%);
+            color: #e5e7eb;
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .dev-banner span {
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* Background decorations */
+        .bg-decoration {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .bg-decoration.one {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            top: -200px;
+            right: -200px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .bg-decoration.two {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #10b981, #06b6d4);
+            bottom: -150px;
+            left: -150px;
+            animation: float 10s ease-in-out infinite reverse;
+        }
+
+        .bg-decoration.three {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-30px) rotate(5deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                opacity: 0.2;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
+
+        /* Main container */
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 48px;
+            width: 100%;
+            max-width: 560px;
+            box-shadow:
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo & Branding */
+        .brand-section {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            animation: bounceIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .welcome-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #60a5fa;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .brand-title {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .brand-subtitle strong {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        .brand-caption {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 12px;
+            font-style: italic;
+        }
+
+        /* Form Styles */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(148, 163, 184, 0.5);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Links */
+        .auth-link {
+            text-align: center;
+            margin-top: 24px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .auth-link a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .auth-link a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 16px 28px;
+            border-radius: 16px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            animation: slideInRight 0.4s ease-out;
+            max-width: 420px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-10px);
+            }
+
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        /* Footer */
+        .card-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .card-footer p {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .card-footer .dev-name {
+            color: #fbbf24;
+            font-weight: 700;
+            font-size: 13px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 580px) {
+            .auth-card {
+                padding: 32px 24px;
+                margin: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .brand-title {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Developer Credit Banner -->
+    <div class="dev-banner">
+        🚀 This system is designed and developed by <span>Engr Usman Umar</span>
+    </div>
+
+    <!-- Background Decorations -->
+    <div class="bg-decoration one"></div>
+    <div class="bg-decoration two"></div>
+    <div class="bg-decoration three"></div>
+
+    <div class="main-container">
+        <div class="auth-card">
+            <!-- Branding Section -->
+            <div class="brand-section">
+                <div class="logo-icon">🎓</div>
+                <div class="welcome-badge">✨ Class of 2020 ✨</div>
+                <h1 class="brand-title">Welcome to SKOSA 2020</h1>
+                <p class="brand-subtitle">
+                    <strong>Science Kankara Old Students Association</strong><br>
+                    Reconnect with classmates, celebrate our journey, and build lasting bonds.
+                </p>
+                <p class="brand-caption">"Once a Science Kankara student, always family."</p>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registerForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" placeholder="Your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" placeholder="Choose a username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="your@email.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" placeholder="08012345678" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="••••••••" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" name="confirm_password" placeholder="••••••••" required minlength="6">
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span class="spinner" id="spinner"></span>
+                    <span id="btnText">🎉 Join SKOSA Family</span>
+                </button>
+            </form>
+
+            <p class="auth-link">
+                Already a member? <a href="/login">Sign In Here</a>
+            </p>
+
+            <div class="card-footer">
+                <p>Designed & Developed by</p>
+                <span class="dev-name">Engr Usman Umar</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 5000);
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            if (data.password !== data.confirm_password) {
+                form.classList.add('shake');
+                setTimeout(() => form.classList.remove('shake'), 500);
+                showToast('❌ Passwords do not match!', 'error');
+                return;
+            }
+
+            const btn = form.querySelector('.submit-btn');
+            const spinner = document.getElementById('spinner');
+            const btnText = document.getElementById('btnText');
+
+            btn.disabled = true;
+            spinner.style.display = 'block';
+            btnText.textContent = 'Creating Account...';
+
+            try {
+                const res = await fetch('/api/v1/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    showToast('🎉 Welcome to SKOSA! Your account is pending approval.', 'success');
+                    form.reset();
+                } else {
+                    showToast('❌ ' + (result.detail || 'Registration failed'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('❌ An error occurred. Please try again.', 'error');
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                btnText.textContent = '🎉 Join SKOSA Family';
+            }
+        });
+    </script>
+</body>
+
+</html>

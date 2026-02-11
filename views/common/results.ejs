@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Election Results - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen">
+
+    <header class="bg-white sticky top-0 z-40 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-4">
+            <a href="javascript:history.back()"
+                class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition text-gray-600">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">Live Results</h1>
+                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">SKOSA Decides</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-bold text-red-500 uppercase tracking-widest">Live Updates</span>
+        </div>
+    </header>
+
+    <div class="max-w-5xl mx-auto p-8" id="resultsContainer">
+        <!-- Results will be injected here -->
+        <div class="text-center py-20 text-gray-500 animate-pulse">Loading analytics...</div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = '/login';
+
+        async function loadResults() {
+            try {
+                const res = await fetch('/api/v1/voting/results', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+
+                const container = document.getElementById('resultsContainer');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = `<div class="text-center py-20 text-gray-400 font-bold">No election data available yet.</div>`;
+                    return;
+                }
+
+                data.forEach((pos, index) => {
+                    const canvasId = `chart_${index}`;
+                    const labels = pos.candidates.map(c => c.name);
+                    const votes = pos.candidates.map(c => c.votes);
+
+                    // HTML Structure
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-3xl shadow-lg p-8 mb-8 border border-gray-100";
+                    card.innerHTML = `
+                        <h2 class="text-2xl font-black text-gray-800 mb-6 border-b border-gray-100 pb-4">${pos.position}</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="md:col-span-2">
+                                <canvas id="${canvasId}"></canvas>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Detailed Counts</h4>
+                                ${pos.candidates.map((c, i) => `
+                                    <div class="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-4 h-4 rounded-full bg-blue-${Math.max(400, 900 - (i * 100))}"></div>
+                                            <span class="font-bold text-sm text-gray-700">${c.name}</span>
+                                        </div>
+                                        <span class="font-black text-lg text-gray-900">${c.votes}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+
+                    // Render Chart
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '# of Votes',
+                                data: votes,
+                                backgroundColor: [
+                                    'rgba(54, 162, 235, 0.6)',
+                                    'rgba(255, 99, 132, 0.6)',
+                                    'rgba(75, 192, 192, 0.6)',
+                                    'rgba(255, 206, 86, 0.6)',
+                                    'rgba(153, 102, 255, 0.6)',
+                                ],
+                                borderColor: [
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                ],
+                                borderWidth: 1,
+                                borderRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { stepSize: 1 }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        loadResults();
+        // Auto refresh results every 30 seconds
+        setInterval(loadResults, 30000);
+    </script>
+</body>
+
+</html>

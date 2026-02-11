@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#1e40af' } } } }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .bg-pattern {
+            background-image: radial-gradient(#1e3a8a 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
+    <div class="flex flex-col min-h-screen">
+        <header
+            class="glass bg-white/70 sticky top-0 z-50 p-4 flex justify-between items-center border-b border-gray-200">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-extrabold text-primary tracking-tight">MY DASHBOARD</h1>
+                <div class="hidden lg:block border-l pl-4 border-gray-200">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Developer</p>
+                    <p class="text-xs font-semibold text-gray-600">Engr Usman Umar</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="handleLogout()"
+                    class="ml-2 text-sm bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl transition font-bold">Logout</button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6 lg:p-12">
+            <div class="max-w-6xl mx-auto space-y-12">
+                <!-- Welcome Section -->
+                <div
+                    class="glass rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-900/5 transition-all hover:shadow-2xl hover:shadow-blue-900/10">
+                    <div class="relative group">
+                        <img id="profileImage" src="/img/default-avatar.png"
+                            class="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-2xl transition group-hover:scale-105"
+                            alt="Profile">
+                        <label for="profileUpload"
+                            class="absolute -bottom-2 -right-2 bg-primary text-white p-2 rounded-xl cursor-pointer shadow-lg hover:scale-110 transition active:scale-95 border-2 border-white">
+                            📸
+                            <input type="file" id="profileUpload" class="hidden" accept="image/*">
+                        </label>
+                    </div>
+
+                    <div class="text-center md:text-left flex-1">
+                        <h2 class="text-2xl font-black text-gray-900 tracking-tight" id="userNameHeader">Welcome!</h2>
+                        <p class="text-gray-500 font-medium text-sm mt-1" id="userEmailSub">Loading your profile...</p>
+                        <div class="mt-3">
+                            <span
+                                class="px-3 py-1 bg-green-500/10 text-green-600 text-[10px] font-black rounded-lg uppercase tracking-widest">Active
+                                Member</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div id="notificationsSection" class="hidden">
+                    <!-- Monthly Dues Notification -->
+                    <div id="duesNotification" class="hidden">
+                        <div
+                            class="glass rounded-3xl p-6 shadow-xl border-l-4 border-red-500 bg-red-50/50 animate-pulse">
+                            <div class="flex items-start gap-4">
+                                <div
+                                    class="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center text-2xl shadow-lg flex-shrink-0">
+                                    🔔
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                        <div>
+                                            <h3 class="text-lg font-black text-red-900 mb-1">MONTHLY CONTRIBUTION DUE!
+                                            </h3>
+                                            <p class="text-sm text-red-700 font-medium" id="duesMessage">
+                                                You have <span id="duesCount" class="font-black">0</span> unpaid
+                                                contribution(s) totaling
+                                                <span id="duesAmount" class="font-black">₦0</span>
+                                            </p>
+                                            <p class="text-xs text-red-600 mt-1 font-bold" id="dueDate">
+                                                Due: <span id="dueDateText">-</span>
+                                            </p>
+                                        </div>
+                                        <a href="/contributions"
+                                            class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg transform hover:scale-105 transition whitespace-nowrap">
+                                            PAY NOW →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Reminders -->
+                    <div id="remindersNotification" class="hidden mt-4">
+                        <div class="glass rounded-3xl p-5 shadow-lg border-l-4 border-orange-500 bg-orange-50/50">
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-xl shadow flex-shrink-0">
+                                    ⚠️
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-md font-black text-orange-900 mb-1">PAYMENT REMINDER</h4>
+                                    <p class="text-sm text-orange-700 font-medium" id="reminderMessage">
+                                        Don't forget to pay your monthly contribution to maintain your active status.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Primary Actions Grid -->
+                <div>
+                    <h3
+                        class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4 px-2 text-center md:text-left">
+                        Quick Actions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <!-- Contribution Card -->
+                        <a href="/contributions"
+                            class="group relative overflow-hidden bg-primary rounded-2xl p-6 text-white shadow-2xl shadow-blue-500/30 transition-all hover:-translate-y-1 hover:shadow-blue-500/50">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">💳</span>
+                                <h4 class="text-lg font-black mb-1">CONTRIBUTION</h4>
+                                <p class="text-blue-100/70 text-xs font-medium">Manage your monthly dues and view
+                                    payment history.</p>
+                                <div id="unpaidAlert" class="mt-3 hidden animate-bounce">
+                                    <span
+                                        class="bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg">
+                                        Action Required
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <!-- Welfare Card -->
+                        <a href="/welfare"
+                            class="group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border border-blue-50 transition-all hover:-translate-y-1 hover:shadow-xl">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">✨</span>
+                                <h4 class="text-lg font-black text-gray-900 mb-1 uppercase">Welfare</h4>
+                                <p class="text-gray-400 text-xs font-medium">Request emergency support or check your
+                                    status.</p>
+                            </div>
+                        </a>
+
+                        <!-- Donation Card -->
+                        <a href="/donations"
+                            class="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-indigo-500/30">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">🎁</span>
+                                <h4 class="text-lg font-black mb-1 uppercase">Donation</h4>
+                                <p class="text-indigo-100/70 text-xs font-medium">Support our ongoing alumni projects
+                                    and initiatives.</p>
+                            </div>
+                        </a>
+
+                        <!-- Directory Card -->
+                        <a href="/directory"
+                            class="group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border border-blue-50 transition-all hover:-translate-y-1 hover:shadow-xl">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">👥</span>
+                                <h4 class="text-lg font-black text-gray-900 mb-1 uppercase">Directory</h4>
+                                <p class="text-gray-400 text-xs font-medium">Browse and connect with other alumni
+                                    members.</p>
+                            </div>
+                        </a>
+
+                        <!-- Settings Card -->
+                        <a href="/settings"
+                            class="group relative overflow-hidden bg-gray-900 rounded-2xl p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">⚙️</span>
+                                <h4 class="text-lg font-black mb-1 uppercase">Settings</h4>
+                                <p class="text-gray-400 text-xs font-medium">Update profile and security settings.</p>
+                            </div>
+                        </a>
+
+                        <!-- Events Card -->
+                        <a href="/events"
+                            class="group relative overflow-hidden bg-gradient-to-br from-pink-600 to-rose-600 rounded-2xl p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-rose-500/30">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">📅</span>
+                                <h4 class="text-lg font-black mb-1 uppercase">Events</h4>
+                                <p class="text-rose-100/70 text-xs font-medium">Join reunions & upcoming meetings.</p>
+                            </div>
+                        </a>
+
+                        <!-- Gallery Card -->
+                        <a href="/gallery"
+                            class="group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg border border-blue-50 transition-all hover:-translate-y-1 hover:shadow-xl">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">🖼️</span>
+                                <h4 class="text-lg font-black text-gray-900 mb-1 uppercase">Gallery</h4>
+                                <p class="text-gray-400 text-xs font-medium">Relive memories through photos.</p>
+                            </div>
+                        </a>
+
+                        <!-- Elections Card -->
+                        <a href="/voting"
+                            class="group relative overflow-hidden bg-gradient-to-br from-purple-700 to-indigo-800 rounded-2xl p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-purple-500/30">
+                            <div class="relative z-10">
+                                <span
+                                    class="text-2xl mb-3 block transform group-hover:scale-110 transition duration-300">🗳️</span>
+                                <h4 class="text-lg font-black mb-1 uppercase">Elections</h4>
+                                <p class="text-purple-100/70 text-xs font-medium">Cast your vote securely.</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <div class="glass rounded-3xl p-6 shadow-lg">
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em] mb-2">Account Status
+                        </p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-lg font-bold text-gray-800">Verified Alumni</span>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-3xl p-6 shadow-lg">
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-[0.2em] mb-2">Contribution
+                            Score</p>
+                        <h3 class="text-3xl font-black text-gray-900" id="userScore">0 <span
+                                class="text-xs font-medium text-gray-400">pts</span></h3>
+                    </div>
+
+                    <div
+                        class="bg-gradient-to-br from-primary to-blue-700 rounded-3xl p-6 shadow-2xl text-white shadow-blue-500/20">
+                        <p class="text-[9px] text-blue-200 font-black uppercase tracking-[0.2em] mb-2">Total
+                            Contributed</p>
+                        <h3 class="text-3xl font-black" id="totalContributed">₦0</h3>
+                    </div>
+
+                    <!-- Message Admin Quick Card -->
+                    <a href="/messages"
+                        class="glass rounded-3xl p-6 shadow-xl flex items-center justify-between group hover:bg-primary transition-all duration-300">
+                        <div>
+                            <p
+                                class="text-[9px] text-gray-400 group-hover:text-blue-200 font-black uppercase tracking-[0.2em] mb-2">
+                                Need Help?</p>
+                            <h3 class="text-lg font-black text-gray-900 group-hover:text-white">Message Admin</h3>
+                        </div>
+                        <div class="text-2xl transform group-hover:scale-110 transition">💬</div>
+                    </a>
+
+                    <!-- Annual Financial Stats -->
+                    <div class="glass rounded-3xl p-6 shadow-lg bg-green-50/30 border-green-100">
+                        <p class="text-[9px] text-green-600 font-black uppercase tracking-[0.2em] mb-2">Total Raised
+                            (Annual)</p>
+                        <h3 class="text-3xl font-black text-gray-900" id="annualRaised">₦0</h3>
+                    </div>
+
+                    <div class="glass rounded-3xl p-6 shadow-lg bg-red-50/30 border-red-100">
+                        <p class="text-[9px] text-red-600 font-black uppercase tracking-[0.2em] mb-2">Total Expenses
+                            (Annual)</p>
+                        <h3 class="text-3xl font-black text-gray-900" id="annualExpenses">₦0</h3>
+                    </div>
+
+                    <div class="glass rounded-3xl p-6 shadow-lg bg-blue-50/30 border-blue-100">
+                        <p class="text-[9px] text-blue-600 font-black uppercase tracking-[0.2em] mb-2">Current Balance
+                        </p>
+                        <h3 class="text-3xl font-black text-gray-900" id="annualBalance">₦0</h3>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Feed -->
+                <div class="glass rounded-3xl p-6 shadow-xl shadow-blue-900/5">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-black text-gray-900 tracking-tight">RECENT ACTIVITY</h3>
+                        <div class="flex items-center gap-3">
+                            <a href="/history"
+                                class="text-[9px] bg-primary text-white px-3 py-1.5 rounded-lg font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:scale-105 transition">History</a>
+                            <span
+                                class="text-[9px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black uppercase tracking-widest">Live
+                                Updates</span>
+                        </div>
+                    </div>
+                    <div id="activityFeed" class="space-y-4">
+                        <!-- Activity items will be injected here -->
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="rounded-full bg-gray-200 h-10 w-10"></div>
+                            <div class="flex-1 space-y-6 py-1">
+                                <div class="h-2 bg-gray-200 rounded"></div>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="h-2 bg-gray-200 rounded col-span-2"></div>
+                                    <div class="h-2 bg-gray-200 rounded col-span-1"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+
+        async function fetchStats() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return window.location.href = '/login';
+            try {
+                const meRes = await fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (meRes.ok) {
+                    const user = await meRes.json();
+                    document.getElementById('userNameHeader').textContent = `Welcome, ${user.full_name.split(' ')[0]}!`;
+                    document.getElementById('userEmailSub').textContent = user.email;
+                    document.getElementById('userScore').innerHTML = `${user.contribution_score || 0} <span class="text-sm font-medium text-gray-400">pts</span>`;
+                    if (user.profile_picture) document.getElementById('profileImage').src = user.profile_picture;
+                }
+                const cRes = await fetch('/api/v1/contributions/my-stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (cRes.ok) {
+                    const stats = await cRes.json();
+                    document.getElementById('totalContributed').textContent = `₦${(stats.totalPaid || 0).toLocaleString()}`;
+                }
+
+                const sRes = await fetch('/api/v1/contributions/status-summary', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (sRes.ok) {
+                    const summary = await sRes.json();
+
+                    // Check for unpaid and due contributions
+                    const dueContributions = summary.filter(s => s.status === 'Due');
+                    const unpaidCount = summary.filter(s => s.status === 'Unpaid').length;
+
+                    if (unpaidCount > 0) {
+                        document.getElementById('unpaidAlert').classList.remove('hidden');
+                    }
+
+                    // Display notifications for due contributions
+                    if (dueContributions.length > 0) {
+                        const totalDue = dueContributions.reduce((sum, c) => sum + (c.amount || 2000), 0);
+                        const notificationsSection = document.getElementById('notificationsSection');
+                        const duesNotification = document.getElementById('duesNotification');
+                        const remindersNotification = document.getElementById('remindersNotification');
+
+                        // Show notifications section
+                        notificationsSection.classList.remove('hidden');
+                        duesNotification.classList.remove('hidden');
+
+                        // Update dues information
+                        document.getElementById('duesCount').textContent = dueContributions.length;
+                        document.getElementById('duesAmount').textContent = `₦${totalDue.toLocaleString()}`;
+
+                        // Get the earliest due date
+                        const currentMonth = dueContributions[0].month;
+                        const [year, month] = currentMonth.split('-');
+                        const dueDate = new Date(parseInt(year), parseInt(month), 5); // 5th of next month
+                        const dueDateFormatted = dueDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        document.getElementById('dueDateText').textContent = dueDateFormatted;
+
+                        // Show reminder if due date is approaching (within 7 days)
+                        const today = new Date();
+                        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                        if (daysUntilDue <= 7 && daysUntilDue > 0) {
+                            remindersNotification.classList.remove('hidden');
+                            document.getElementById('reminderMessage').textContent =
+                                `Payment due in ${daysUntilDue} day${daysUntilDue !== 1 ? 's' : ''}! Pay now to avoid late fees.`;
+                        } else if (daysUntilDue <= 0) {
+                            remindersNotification.classList.remove('hidden');
+                            document.getElementById('reminderMessage').textContent =
+                                `Your payment is overdue! Please pay immediately to maintain your active status.`;
+                        }
+                    }
+                }
+
+                const aRes = await fetch('/api/v1/reports/summary/annual', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (aRes.ok) {
+                    const annual = await aRes.json();
+                    document.getElementById('annualRaised').textContent = `₦${(annual.total || 0).toLocaleString()}`;
+                    document.getElementById('annualExpenses').textContent = `₦${(annual.expenses || 0).toLocaleString()}`;
+                    document.getElementById('annualBalance').textContent = `₦${(annual.balance || 0).toLocaleString()}`;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchRecentActivity() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/activity/recent', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    const feed = document.getElementById('activityFeed');
+                    if (data.length === 0) {
+                        feed.innerHTML = '<p class="text-center text-gray-400 font-bold py-8">No recent activity found.</p>';
+                        return;
+                    }
+                    feed.innerHTML = data.map(act => `
+                        <div class="flex items-start gap-4 p-4 hover:bg-white rounded-2xl transition group border border-transparent hover:border-blue-50">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-sm ${act.type === 'payment' ? 'bg-green-50 text-green-600' : 'bg-blue-50 text-blue-600'
+                        }">
+                                ${act.type === 'payment' ? '💳' : '✨'}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-bold text-gray-900">${act.title}</h4>
+                                    <span class="text-[10px] text-gray-400 font-black uppercase text-right">
+                                        ${new Date(act.date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}<br>
+                                        ${new Date(act.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500 font-medium">${act.subtitle}</p>
+                                <span class="inline-block mt-2 px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${act.status === 'Verified' || act.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                            act.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+                        }">
+                                    ${act.status}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('profileUpload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/auth/profile-picture', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('profileImage').src = data.path;
+                }
+            } catch (e) { console.error(e); }
+        });
+
+        fetchStats();
+        fetchRecentActivity();
+    </script>
+</body>
+
+</html>

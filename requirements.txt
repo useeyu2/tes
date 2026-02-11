@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+motor
+jinja2
+python-multipart
+passlib[bcrypt]
+python-jose[cryptography]
+pydantic-settings
+email-validator
+black
+flake8
+pytest
+isort
+httpx

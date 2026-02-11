@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elections - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#1e40af' } } } }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="bg-white sticky top-0 z-40 px-6 py-4 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-4">
+            <a href="/dashboard"
+                class="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition text-gray-600">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-800">SKOSA Decides</h1>
+                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Secure Voting</p>
+            </div>
+        </div>
+        <a href="/results"
+            class="text-sm font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg">View Results <i
+                class="fas fa-chart-pie ml-1"></i></a>
+    </header>
+
+    <div class="max-w-4xl mx-auto p-6" id="votingContainer">
+        <!-- Loading -->
+        <div class="text-center py-20 text-gray-500 animate-pulse">Loading ballot...</div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('access_token');
+        if (!token) window.location.href = '/login';
+
+        async function loadBallot() {
+            try {
+                const res = await fetch('/api/v1/voting/data', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+
+                const container = document.getElementById('votingContainer');
+                container.innerHTML = '';
+
+                if (data.positions.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-20">
+                            <i class="fas fa-check-circle text-6xl text-gray-300 mb-6"></i>
+                            <h2 class="text-2xl font-bold text-gray-800">No Active Elections</h2>
+                            <p class="text-gray-500">Check back later or view past results.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                data.positions.forEach(pos => {
+                    const positionCandidates = data.candidates.filter(c => c.position && (c.position._id === pos._id || c.position === pos._id));
+                    // Correctly check nested object or ID string for populating
+
+                    // Check if user voted for this position
+                    const myVote = data.myVotes.find(v => v.positionId === pos._id);
+
+                    let candidatesHtml = '';
+
+                    if (myVote) {
+                        // READ ONLY VIEW - ALREADY VOTED
+                        candidatesHtml = positionCandidates.map(c => {
+                            const isMyChoice = myVote.candidateId === c._id;
+                            return `
+                                <div class="relative p-4 rounded-xl border-2 ${isMyChoice ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-200 opacity-60'} flex items-center gap-4">
+                                    ${isMyChoice ? '<div class="absolute -top-3 -right-3 bg-green-500 text-white rounded-full p-1 shadow"><i class="fas fa-check"></i></div>' : ''}
+                                    <div class="w-16 h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
+                                        ${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-gray-400 text-2xl m-auto h-full flex items-center justify-center"></i>`}
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">${c.full_name}</h4>
+                                        <p class="text-xs text-gray-500 line-clamp-2">${c.manifesto || 'No manifesto'}</p>
+                                    </div>
+                                </div>
+                             `;
+                        }).join('');
+
+                        container.innerHTML += `
+                            <div class="bg-white rounded-3xl shadow-sm border border-green-200 p-8 mb-8 relative overflow-hidden">
+                                <div class="absolute top-0 right-0 bg-green-500 text-white px-4 py-1 text-xs font-bold rounded-bl-xl">VOTE CAST</div>
+                                <h2 class="text-2xl font-black text-gray-800 mb-2">${pos.title}</h2>
+                                <p class="text-gray-500 text-sm mb-6">${pos.description || 'Cast your vote for this position.'}</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    ${candidatesHtml}
+                                </div>
+                            </div>
+                         `;
+
+                    } else {
+                        // ACTIVE VOTING VIEW
+                        candidatesHtml = positionCandidates.map(c => `
+                            <label class="cursor-pointer relative group">
+                                <input type="radio" name="pos_${pos._id}" value="${c._id}" class="peer hidden" onchange="enableSubmit('${pos._id}')">
+                                <div class="p-4 rounded-xl border-2 border-gray-100 bg-gray-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all hover:bg-white hover:shadow-md flex items-center gap-4 h-full">
+                                    <div class="w-16 h-16 rounded-full bg-white border border-gray-200 overflow-hidden flex-shrink-0">
+                                        ${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-gray-400 text-2xl m-auto h-full flex items-center justify-center"></i>`}
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-bold text-gray-800">${c.full_name}</h4>
+                                        <p class="text-xs text-gray-500 line-clamp-2 mb-2">${c.manifesto || ''}</p>
+                                        <span class="text-[10px] font-bold text-blue-600 opacity-0 peer-checked:opacity-100 transition mr-auto">SELECTED</span>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full border-2 border-gray-300 peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center">
+                                        <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100"></i>
+                                    </div>
+                                </div>
+                            </label>
+                         `).join('');
+
+                        container.innerHTML += `
+                            <div class="bg-white rounded-3xl shadow-lg shadow-blue-900/5 p-8 mb-8 border border-white">
+                                <h2 class="text-2xl font-black text-gray-800 mb-2">${pos.title}</h2>
+                                <p class="text-gray-500 text-sm mb-6">${pos.description || 'Select one candidate.'}</p>
+                                
+                                <form onsubmit="castVote(event, '${pos._id}')">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        ${candidatesHtml}
+                                    </div>
+                                    <div class="text-right">
+                                        <button type="submit" id="btn_${pos._id}" disabled 
+                                            class="bg-gray-300 text-gray-500 px-8 py-3 rounded-xl font-bold transition cursor-not-allowed">
+                                            Confirm Vote
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                         `;
+                    }
+                });
+
+            } catch (e) { console.error(e); }
+        }
+
+        function enableSubmit(posId) {
+            const btn = document.getElementById(`btn_${posId}`);
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+                btn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'shadow-lg');
+            }
+        }
+
+        async function castVote(e, posId) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            // Radio button name is pos_{posId}, so we iterate to find the value 
+            // OR just select checked input in this form
+            const selected = e.target.querySelector(`input[name="pos_${posId}"]:checked`);
+            if (!selected) return;
+
+            if (!confirm("Confirm your vote? This action cannot be undone.")) return;
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Submitting...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/v1/voting/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        positionId: posId,
+                        candidateId: selected.value
+                    })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    alert('Vote Cast Successfully!');
+                    loadBallot(); // Reload to show read-only state
+                } else {
+                    alert(result.detail || 'Failed to vote');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        loadBallot();
+    </script>
+</body>
+
+</html>

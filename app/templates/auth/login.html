@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Alumni Contribution{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-gradient-to-br from-primary to-dark">
+    <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all hover:scale-[1.01]">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+            <p class="text-gray-200">Sign in to manage your contributions</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-100 mb-1">Email Address</label>
+                <input type="email" id="email" name="username" required 
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all backdrop-blur-sm">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-100 mb-1">Password</label>
+                <input type="password" id="password" name="password" required 
+                    class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-secondary focus:border-transparent transition-all backdrop-blur-sm">
+            </div>
+
+            <div class="flex items-center justify-between text-sm">
+                <a href="#" class="text-gray-200 hover:text-white hover:underline transition-colors">Forgot password?</a>
+            </div>
+
+            <button type="submit" 
+                class="w-full py-3 px-4 bg-secondary hover:bg-emerald-400 text-white font-semibold rounded-lg shadow-lg transform transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-300">
+            Don't have an account? <a href="/register" class="font-medium text-white hover:underline">Register here</a>
+        </div>
+        
+        <div id="errorMessage" class="hidden mt-4 p-3 bg-red-500/80 text-white rounded-lg text-sm text-center"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        
+        try {
+            const response = await fetch('/api/v1/auth/login', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('access_token', data.access_token);
+                // Redirect based on role
+                if (data.user.role === 'Member') {
+                    window.location.href = '/dashboard';
+                } else {
+                    window.location.href = '/admin/dashboard';
+                }
+            } else {
+                const error = await response.json();
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = error.detail || 'Login failed';
+                errorDiv.classList.remove('hidden');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+</script>
+{% endblock %}
