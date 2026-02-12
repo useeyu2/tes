@@ -129,6 +129,37 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Recent Transactions (Audit/Undo) -->
+                <div class="bg-white rounded-xl shadow p-6 mt-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">Processed Transactions</h3>
+                        <p class="text-[10px] uppercase font-bold text-gray-400">Allows Reverting Approval/Rejection</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date
+                                    </th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsTable" class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">Loading history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -198,6 +229,7 @@
                 });
                 if (res.ok) {
                     loadPendingPayments();
+                    loadRecentPayments();
                 } else {
                     alert("Action failed.");
                 }
