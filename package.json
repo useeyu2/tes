@@ -2,7 +2,7 @@
     "name": "alumni-contribution-system",
     "version": "1.0.0",
     "description": "Alumni Contribution System - Node.js Migration",
-    "main": "server.js",
+    "main": "api/index.js",
     "engines": {
         "node": "20.x"
     },
