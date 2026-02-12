@@ -60,12 +60,15 @@ const connectDB = async () => {
 connectDB();
 
 // Ensure connection is established before processing requests (Middleware)
-app.use(async (req, res, next) => {
-    if (!isConnected) {
-        await connectDB();
-    }
-    next();
-});
+// app.use(async (req, res, next) => {
+//     if (!isConnected) {
+//         await connectDB();
+//     }
+//     next();
+// });
+
+// Debug Root Route
+app.get('/', (req, res) => res.send('Server is Running (Debug Mode)'));
 
 // Routes
 app.use('/api/v1/auth', require('./routes/auth'));
