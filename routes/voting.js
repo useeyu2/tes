@@ -5,8 +5,9 @@ const Position = require('../models/Position');
 const Candidate = require('../models/Candidate');
 const Vote = require('../models/Vote');
 const upload = require('../services/uploadService');
+const { isAdmin } = require('../middlewares/authMiddleware');
 
-// Middleware to verify token
+// General middleware for any logged in user
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
@@ -17,11 +18,11 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (e) {
-        res.status(401).json({ detail: 'Invalid token' });
+        res.status(401).json({ detail: 'Invalid or expired token' });
     }
 };
 
-// GET /data - Get all voting data (Positions, Candidates, My Votes)
+// GET /data - Get all voting data
 router.get('/data', verifyToken, async (req, res) => {
     try {
         const positions = await Position.find({ is_active: true });
@@ -56,8 +57,6 @@ router.post('/vote', verifyToken, async (req, res) => {
         });
 
         await newVote.save();
-
-        // Increment candidate count
         await Candidate.findByIdAndUpdate(candidateId, { $inc: { votes_count: 1 } });
 
         res.json({ success: true, message: 'Vote cast successfully!', vote: newVote });
@@ -72,24 +71,26 @@ router.post('/vote', verifyToken, async (req, res) => {
 // --- ADMIN ROUTES ---
 
 // POST /positions - Create Position
-router.post('/positions', verifyToken, async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') return res.status(403).json({ detail: 'Denied' });
+router.post('/positions', isAdmin, async (req, res) => {
     try {
-        const position = new Position(req.body);
+        const { title, description, max_votes } = req.body;
+        if (!title) return res.status(400).json({ detail: 'Title is required' });
+
+        const position = new Position({ title, description, max_votes });
         await position.save();
-        res.json(position);
+        res.json({ success: true, message: 'Position created successfully', position });
     } catch (e) {
         res.status(500).json({ detail: e.message });
     }
 });
 
 // POST /candidates - Add Candidate
-router.post('/candidates', verifyToken, upload.single('photo'), async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') return res.status(403).json({ detail: 'Denied' });
+router.post('/candidates', isAdmin, upload.single('photo'), async (req, res) => {
     try {
         const { full_name, manifesto, position } = req.body;
-        const photoUrl = req.file ? req.file.path : null;
+        if (!full_name || !position) return res.status(400).json({ detail: 'Full name and position are required' });
 
+        const photoUrl = req.file ? req.file.path : null;
         const candidate = new Candidate({
             full_name,
             manifesto,
@@ -97,7 +98,7 @@ router.post('/candidates', verifyToken, upload.single('photo'), async (req, res)
             photoUrl
         });
         await candidate.save();
-        res.json(candidate);
+        res.json({ success: true, message: 'Candidate added successfully', candidate });
     } catch (e) {
         res.status(500).json({ detail: e.message });
     }
@@ -106,15 +107,13 @@ router.post('/candidates', verifyToken, upload.single('photo'), async (req, res)
 // GET /results - Get detailed results
 router.get('/results', verifyToken, async (req, res) => {
     try {
-        // Anyone can view results in this design (Transparency)
-        // Or restrict to admin? Let's allow everyone.
         const positions = await Position.find({});
-        const candidates = await Candidate.find({}); // Contains votes_count
+        const candidates = await Candidate.find({});
 
-        // Structure data for easier frontend consumption
         const report = positions.map(pos => {
-            const posCandidates = candidates.filter(c => c.position.toString() === pos._id.toString());
+            const posCandidates = candidates.filter(c => c.position && c.position.toString() === pos._id.toString());
             return {
+                id: pos._id,
                 position: pos.title,
                 candidates: posCandidates.map(c => ({
                     name: c.full_name,

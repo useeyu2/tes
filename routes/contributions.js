@@ -285,54 +285,60 @@ router.post('/verify-payment/:id', async (req, res) => {
         });
 
         res.json({ message: `Payment ${status}` });
-        router.post('/revert-payment/:id', async (req, res) => {
-            try {
-                const tx = await Transaction.findById(req.params.id);
-                if (!tx) return res.status(404).json({ detail: "Transaction not found" });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
 
-                const oldStatus = tx.status;
-                if (oldStatus === 'Pending') return res.status(400).json({ detail: "Transaction is already pending" });
+// Revert Payment (Admin)
+router.post('/revert-payment/:id', async (req, res) => {
+    try {
+        const tx = await Transaction.findById(req.params.id);
+        if (!tx) return res.status(404).json({ detail: "Transaction not found" });
 
-                // Update Transaction
-                tx.status = 'Pending';
-                tx.verified_at = undefined;
-                await tx.save();
+        const oldStatus = tx.status;
+        if (oldStatus === 'Pending') return res.status(400).json({ detail: "Transaction is already pending" });
 
-                // Revert points and contribution status if it was verified
-                if (oldStatus === 'Verified') {
-                    const monthList = tx.months && tx.months.length > 0 ? tx.months : [tx.month];
-                    let totalPoints = 0;
+        // Update Transaction
+        tx.status = 'Pending';
+        tx.verified_at = undefined;
+        await tx.save();
 
-                    for (const m of monthList) {
-                        if (!m) continue;
+        // Revert points and contribution status if it was verified
+        if (oldStatus === 'Verified') {
+            const monthList = tx.months && tx.months.length > 0 ? tx.months : [tx.month];
+            let totalPoints = 0;
 
-                        // Revert Contribution Record
-                        await Contribution.findOneAndUpdate(
-                            { user_id: tx.user_id, month: m, transaction_id: tx._id },
-                            { status: 'Due', transaction_id: null }
-                        );
+            for (const m of monthList) {
+                if (!m) continue;
 
-                        totalPoints += 10;
-                    }
+                // Revert Contribution Record
+                await Contribution.findOneAndUpdate(
+                    { user_id: tx.user_id, month: m },
+                    { status: 'Due', amount_paid: 0 }
+                );
 
-                    if (totalPoints > 0) {
-                        await User.findByIdAndUpdate(tx.user_id, { $inc: { contribution_score: -totalPoints } });
-                    }
-                }
-
-                await AuditLog.create({
-                    actor_id: "ADMIN",
-                    action: `PAYMENT_REVERTED`,
-                    resource: "transactions",
-                    target_id: tx._id,
-                    details: { amount: tx.amount, prev_status: oldStatus }
-                });
-
-                res.json({ message: "Payment approval reverted successfully" });
-            } catch (e) {
-                console.error('Revert Payment Error:', e.message);
-                res.status(500).json({ detail: e.message });
+                totalPoints += 10;
             }
+
+            if (totalPoints > 0) {
+                await User.findByIdAndUpdate(tx.user_id, { $inc: { contribution_score: -totalPoints } });
+            }
+        }
+
+        await AuditLog.create({
+            actor_id: "ADMIN",
+            action: `PAYMENT_REVERTED`,
+            resource: "transactions",
+            target_id: tx._id,
+            details: { amount: tx.amount, prev_status: oldStatus }
         });
 
-        module.exports = router;
+        res.json({ message: "Payment approval reverted successfully" });
+    } catch (e) {
+        console.error('Revert Payment Error:', e.message);
+        res.status(500).json({ detail: e.message });
+    }
+});
+
+module.exports = router;

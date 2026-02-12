@@ -3,8 +3,9 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Photo = require('../models/Photo');
 const upload = require('../services/uploadService');
+const { isAdmin } = require('../middlewares/authMiddleware');
 
-// Middleware to verify token
+// General middleware for any logged in user
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
@@ -15,7 +16,7 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (e) {
-        res.status(401).json({ detail: 'Invalid token' });
+        res.status(401).json({ detail: 'Invalid or expired token' });
     }
 };
 
@@ -30,11 +31,7 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // POST / - Upload Photo (Admin Only)
-router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
-        return res.status(403).json({ detail: 'Permission denied' });
-    }
-
+router.post('/', isAdmin, upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ detail: 'No file uploaded' });
 
@@ -51,13 +48,10 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
 });
 
 // DELETE /:id - Delete Photo (Admin Only)
-router.delete('/:id', verifyToken, async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
-        return res.status(403).json({ detail: 'Permission denied' });
-    }
-
+router.delete('/:id', isAdmin, async (req, res) => {
     try {
-        await Photo.findByIdAndDelete(req.params.id);
+        const photo = await Photo.findByIdAndDelete(req.params.id);
+        if (!photo) return res.status(404).json({ detail: 'Photo not found' });
         res.json({ success: true, message: 'Photo deleted successfully' });
     } catch (e) {
         res.status(500).json({ detail: e.message });

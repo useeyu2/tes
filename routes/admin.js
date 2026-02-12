@@ -239,4 +239,47 @@ router.post('/trigger-reminders', async (req, res) => {
     }
 });
 
+const Message = require('../models/Message');
+const Welfare = require('../models/Welfare');
+const Event = require('../models/Event');
+const Expense = require('../models/Expense');
+
+// Dashboard Overview Stats
+router.get('/overview', async (req, res) => {
+    try {
+        const [
+            unreadMessages,
+            pendingWelfare,
+            upcomingEvents,
+            recentWelfare,
+            recentExpenses,
+            upcomingEventsList
+        ] = await Promise.all([
+            Message.countDocuments({ receiver_id: req.user.id, is_read: false }),
+            Welfare.countDocuments({ status: 'Pending' }),
+            Event.countDocuments({ date: { $gte: new Date() } }),
+            Welfare.find().populate('user_id', 'full_name').sort({ created_at: -1 }).limit(3),
+            Expense.find().sort({ date: -1 }).limit(3),
+            Event.find({ date: { $gte: new Date() } }).sort({ date: 1 }).limit(3)
+        ]);
+
+        res.json({
+            unreadMessages,
+            pendingWelfare,
+            upcomingEvents,
+            recentWelfare: recentWelfare.map(r => ({
+                _id: r._id,
+                user_name: r.user_id?.full_name || 'Unknown',
+                type: r.request_type,
+                amount: r.amount_requested,
+                status: r.status
+            })),
+            recentExpenses,
+            upcomingEventsList
+        });
+    } catch (e) {
+        res.status(500).json({ detail: e.message });
+    }
+});
+
 module.exports = router;

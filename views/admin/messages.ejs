@@ -32,9 +32,73 @@
 
 <body class="bg-gray-50 text-gray-900 min-h-screen">
     <div class="flex h-screen overflow-hidden relative">
-        <!-- Sidebar -->
+        <!-- Sidebar Overlay (Mobile) -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()"
+            class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+
+        <!-- Admin Sidebar -->
+        <aside id="adminSidebar"
+            class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <div class="p-8">
+                <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
+                <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
+
+                <!-- Admin Details in Sidebar -->
+                <div class="bg-white/10 rounded-xl p-3 border border-white/10 mb-2">
+                    <p class="text-[10px] uppercase tracking-widest text-white/60 font-bold" id="sidebarAdminRole">
+                        Loading...</p>
+                    <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 space-y-2">
+                <a href="/admin/dashboard"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>👥</span> Members
+                </a>
+                <a href="/admin/payments"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>💰</span> Payments
+                </a>
+                <a href="/admin/expenses"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>📉</span> Expenses
+                </a>
+                <a href="/admin/welfare"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>🏥</span> Welfare
+                </a>
+                <a href="/admin/messages"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl bg-white/10 text-white font-bold transition">
+                    <span>💬</span> Messages
+                </a>
+                <a href="/contributions"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>💳</span> My Contribution
+                </a>
+                <a href="/admin/events/create"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>📅</span> Create Event
+                </a>
+                <a href="/admin/gallery/upload"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>🖼️</span> Upload Memory
+                </a>
+                <a href="/admin/voting/setup"
+                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+                    <span>🗳️</span> Setup Elections
+                </a>
+            </nav>
+            <div class="p-4">
+                <button onclick="handleLogout()"
+                    class="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold transition">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Chat Sidebar -->
         <aside id="chatSidebar"
-            class="fixed md:static inset-y-0 left-0 w-full md:w-80 bg-white border-r border-gray-200 flex flex-col z-[60] transform md:translate-x-0 transition-transform duration-300 ease-in-out">
+            class="fixed md:static inset-y-0 md:inset-x-auto left-0 w-full md:w-80 bg-white border-r border-gray-200 flex flex-col z-[56] transform md:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="p-6 border-b border-gray-100">
                 <h1 class="text-xl font-black text-primary uppercase">Conversations</h1>
             </div>
@@ -54,21 +118,35 @@
         </aside>
 
         <!-- Chat Area -->
-        <main class="flex-1 flex flex-col bg-gray-50 h-full">
+        <main class="flex-1 flex flex-col bg-gray-50 h-full overflow-hidden">
             <header id="chatHeader"
                 class="bg-white border-b border-gray-200 p-4 md:p-6 flex justify-between items-center h-20">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 md:gap-3 shrink-0">
+                    <!-- Mobile Admin Sidebar Toggle -->
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+
                     <button onclick="toggleChatList()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
                         <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
                             </path>
                         </svg>
                     </button>
-                    <h2 class="font-black text-gray-900 uppercase text-sm md:text-base truncate">Select a member to chat
+                    <h2
+                        class="font-black text-gray-900 uppercase text-[10px] md:text-sm truncate max-w-[120px] md:max-w-none">
+                        Select a member to chat
                     </h2>
                 </div>
-                <a href="/admin/dashboard" class="text-xs md:text-sm font-bold text-primary whitespace-nowrap">← Admin
-                    Panel</a>
+                <div class="flex items-center gap-4">
+                    <div class="hidden lg:block border-l pl-4 border-gray-200 mr-4">
+                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">DEVELOPER</p>
+                        <p class="text-[10px] font-semibold text-gray-600">Developer Usman Umar</p>
+                    </div>
+                </div>
             </header>
 
             <div id="chatWindow" class="flex-1 overflow-y-auto p-8 space-y-4">
@@ -93,6 +171,20 @@
     </div>
 
     <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('adminSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+
         function toggleChatList() {
             const sidebar = document.getElementById('chatSidebar');
             if (sidebar.classList.contains('-translate-x-full')) {
@@ -116,6 +208,14 @@
         async function loadData() {
             const token = localStorage.getItem('access_token');
             try {
+                // Fetch me for sidebar
+                const meRes = await fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (meRes.ok) {
+                    const user = await meRes.json();
+                    document.getElementById('sidebarAdminName').textContent = user.full_name;
+                    document.getElementById('sidebarAdminRole').textContent = user.role;
+                }
+
                 // Fetch active conversations
                 const convRes = await fetch('/api/v1/messages/admin/conversations', {
                     headers: { 'Authorization': `Bearer ${token}` }

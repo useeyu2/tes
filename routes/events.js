@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const Event = require('../models/Event');
-const upload = require('../services/uploadService'); // Assuming we reuse upload service if needed, though plan said optional image URL string. Let's support file upload if needed later, but for now stick to simple structure.
+const { isAdmin } = require('../middlewares/authMiddleware');
 
-// Middleware to verify token
+// General middleware for any logged in user
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
@@ -15,24 +15,18 @@ const verifyToken = (req, res, next) => {
         req.user = decoded;
         next();
     } catch (e) {
-        res.status(401).json({ detail: 'Invalid token' });
+        res.status(401).json({ detail: 'Invalid or expired token' });
     }
 };
 
 // GET / - List all upcoming events
 router.get('/', verifyToken, async (req, res) => {
     try {
-        // Sort by date ascending (soonest first)
-        // Filter out past events if desired? For now, list all or just upcoming.
-        // Let's filter date >= today
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        // Go back 1 day to handle timezone differences
         today.setDate(today.getDate() - 1);
 
-        console.log('[DEBUG] Filtering events since:', today);
         const events = await Event.find({ date: { $gte: today } }).sort({ date: 1 });
-        console.log('[DEBUG] Events found:', events.length);
         res.json(events);
     } catch (e) {
         res.status(500).json({ detail: e.message });
@@ -51,13 +45,10 @@ router.get('/:id', verifyToken, async (req, res) => {
 });
 
 // POST / - Create Event (Admin Only)
-router.post('/', verifyToken, async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
-        return res.status(403).json({ detail: 'Permission denied' });
-    }
-
+router.post('/', isAdmin, async (req, res) => {
     try {
         const { title, description, date, time, location, imageUrl, organizer } = req.body;
+        if (!title || !date) return res.status(400).json({ detail: 'Title and date are required' });
 
         const newEvent = new Event({
             title,
@@ -70,7 +61,6 @@ router.post('/', verifyToken, async (req, res) => {
         });
 
         const savedEvent = await newEvent.save();
-        console.log('[DEBUG] Event Created:', savedEvent);
         res.json({ success: true, message: 'Event created successfully', event: savedEvent });
     } catch (e) {
         res.status(500).json({ detail: e.message });
@@ -87,12 +77,10 @@ router.post('/:id/rsvp', verifyToken, async (req, res) => {
         const index = event.rsvps.indexOf(userId);
 
         if (index === -1) {
-            // Join
             event.rsvps.push(userId);
             await event.save();
             res.json({ success: true, message: 'RSVP successful', status: 'joined' });
         } else {
-            // Leave
             event.rsvps.splice(index, 1);
             await event.save();
             res.json({ success: true, message: 'RSVP cancelled', status: 'left' });
@@ -103,13 +91,10 @@ router.post('/:id/rsvp', verifyToken, async (req, res) => {
 });
 
 // DELETE /:id - Delete Event (Admin Only)
-router.delete('/:id', verifyToken, async (req, res) => {
-    if (req.user.role !== 'Admin' && req.user.role !== 'SuperAdmin') {
-        return res.status(403).json({ detail: 'Permission denied' });
-    }
-
+router.delete('/:id', isAdmin, async (req, res) => {
     try {
-        await Event.findByIdAndDelete(req.params.id);
+        const event = await Event.findByIdAndDelete(req.params.id);
+        if (!event) return res.status(404).json({ detail: 'Event not found' });
         res.json({ success: true, message: 'Event deleted successfully' });
     } catch (e) {
         res.status(500).json({ detail: e.message });
