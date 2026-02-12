@@ -38,14 +38,16 @@ const connectDB = async () => {
         return;
     }
 
-    if (!process.env.MONGODB_URL) {
-        console.error('❌ MONGODB_URL is missing!');
+    const dbUrl = process.env.MONGODB_URL || process.env.MONGODB_Url;
+
+    if (!dbUrl) {
+        console.error('❌ MONGODB_URL (or MONGODB_Url) is missing!');
         return;
     }
 
     console.log('=> Creating new database connection...');
     try {
-        const db = await mongoose.connect(process.env.MONGODB_URL, {
+        const db = await mongoose.connect(dbUrl, {
             serverSelectionTimeoutMS: 5000,
             bufferCommands: false, // Disable buffering
         });
