@@ -10,7 +10,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
+
+// Health Check
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 console.log('Middleware initialized');
 
 // Debug Logger
@@ -20,8 +24,9 @@ app.use((req, res, next) => {
 });
 
 // View Engine
+// View Engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(process.cwd(), 'views'));
 
 // Database Connection
 console.log('Attempting to connect to MongoDB...');
