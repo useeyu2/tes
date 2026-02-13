@@ -10,7 +10,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(process.cwd(), 'public')));
+
+// Health Check
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
 console.log('Middleware initialized');
 
 // Debug Logger
@@ -20,38 +24,53 @@ app.use((req, res, next) => {
 });
 
 // View Engine
+// View Engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(process.cwd(), 'views'));
 
 // Database Connection
-console.log('Attempting to connect to MongoDB...');
+// Database Connection (Serverless Pattern)
+let isConnected = false;
+
 const connectDB = async () => {
-    if (!process.env.MONGODB_URL) {
-        console.error('❌ MONGODB_URL is missing in environment variables!');
+    if (isConnected) {
+        console.log('=> Using existing database connection');
         return;
     }
+
+    const dbUrl = process.env.MONGODB_URL || process.env.MONGODB_Url;
+
+    if (!dbUrl) {
+        console.error('❌ MONGODB_URL (or MONGODB_Url) is missing!');
+        return;
+    }
+
+    console.log('=> Creating new database connection...');
     try {
-        await mongoose.connect(process.env.MONGODB_URL, {
+        const db = await mongoose.connect(dbUrl, {
             serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
+            bufferCommands: false, // Disable buffering
         });
+        isConnected = db.connections[0].readyState;
         console.log('✅ Connected to MongoDB');
     } catch (err) {
         console.error('❌ MongoDB connection error:', err.message);
-        console.log('Retrying connection in 5 seconds...');
-        setTimeout(connectDB, 5000);
     }
 };
 
-mongoose.connection.on('disconnected', () => {
-    console.warn('⚠️ MongoDB disconnected. Attempting to reconnect...');
-});
-
-mongoose.connection.on('error', (err) => {
-    console.error('🔥 MongoDB error:', err.message);
-});
-
+// Connect immediately
 connectDB();
+
+// Ensure connection is established before processing requests (Middleware)
+app.use(async (req, res, next) => {
+    if (!isConnected) {
+        await connectDB();
+    }
+    next();
+});
+
+// Debug Root Route
+// app.get('/', (req, res) => res.send('Server is Running (Debug Mode)'));
 
 // Routes
 app.use('/api/v1/auth', require('./routes/auth'));
