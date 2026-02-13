@@ -25,318 +25,273 @@
 
 <body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
     <div class="flex h-screen overflow-hidden relative">
-        <!-- Sidebar Overlay (Mobile) -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()"
-            class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+        <%- include('../partials/sidebar') %>
 
-        <!-- Sidebar -->
-        <aside id="adminSidebar"
-            class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-            <div class="p-8">
-                <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
-                <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
-
-                <!-- Admin Details in Sidebar -->
-                <div class="bg-white/10 rounded-xl p-3 border border-white/10 mb-2">
-                    <p class="text-[10px] uppercase tracking-widest text-white/60 font-bold" id="sidebarAdminRole">
-                        Loading...</p>
-                    <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
-                </div>
-            </div>
-            <nav class="flex-1 px-4 space-y-2">
-                <a href="/admin/dashboard"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl bg-white/10 text-white font-bold transition">
-                    <span>👥</span> Members
-                </a>
-                <a href="/admin/payments"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💰</span> Payments
-                </a>
-                <a href="/admin/expenses"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📉</span> Expenses
-                </a>
-                <a href="/admin/welfare"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🏥</span> Welfare
-                </a>
-                <a href="/admin/messages"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💬</span> Messages
-                </a>
-                <a href="/contributions"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💳</span> My Contribution
-                </a>
-                <a href="/admin/events/create"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📅</span> Create Event
-                </a>
-                <a href="/admin/gallery/upload"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🖼️</span> Upload Memory
-                </a>
-                <a href="/admin/voting/setup"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🗳️</span> Setup Elections
-                </a>
-            </nav>
-            <div class="p-4">
-                <button onclick="handleLogout()"
-                    class="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold transition">
-                    <span>🚪</span> Logout
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header
-                class="glass bg-white/70 sticky top-0 z-50 p-4 px-4 md:px-8 flex justify-between items-center border-b border-gray-200">
-                <div class="flex items-center gap-3 md:gap-4">
-                    <!-- Mobile Hamburger -->
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
-                    <h2 class="text-lg md:text-xl font-semibold text-gray-800 truncate">Admin Dashboard</h2>
-                    <div class="hidden lg:block border-l pl-4 border-gray-200">
-                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">DEVELOPER</p>
-                        <p class="text-xs font-semibold text-gray-600">Developer Usman Umar</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2 md:space-x-4">
-                    <button onclick="openAddMemberModal()"
-                        class="bg-primary text-white p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-blue-800">
-                        <span class="hidden md:inline">Add Member</span>
-                        <span class="md:hidden">➕</span>
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <% const actions=` <button onclick="openAddMemberModal()"
+                    class="bg-primary text-white p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-blue-800 transition shadow-lg shadow-blue-500/20">
+                    <span class="hidden md:inline">Add Member</span>
+                    <span class="md:hidden">➕</span>
                     </button>
                     <button onclick="exportToCSV()"
-                        class="border border-gray-300 text-gray-700 p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-gray-50">
+                        class="border border-gray-300 text-gray-700 p-2 md:px-4 md:py-2 rounded-lg text-sm hover:bg-gray-50 transition">
                         <span class="hidden md:inline">Export CSV</span>
                         <span class="md:hidden">📥</span>
                     </button>
-                    <button onclick="handleLogout()"
-                        class="bg-red-500 hover:bg-red-600 text-white p-2 md:px-4 md:py-2 rounded-lg text-sm font-bold transition">
-                        <span class="hidden md:inline">Logout</span>
-                        <span class="md:hidden">🚪</span>
-                    </button>
-                </div>
-            </header>
+                    `;
+                    %>
+                    <%- include('../partials/header', { title: 'Admin Dashboard' , actions: actions }) %>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                <!-- Stats Row -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
-                    <!-- Cards -->
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Total Members</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-gray-800" id="totalMembers">0</h3>
-                            <span class="text-xl opacity-50">👥</span>
-                        </div>
-                    </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Raised (Annual)</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-green-600" id="annualTotal">₦0</h3>
-                            <span class="text-xl opacity-50">💰</span>
-                        </div>
-                    </div>
+                        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                            <!-- Stats Row -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-6">
+                                <!-- Cards -->
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Total
+                                        Members</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-gray-800" id="totalMembers">0</h3>
+                                        <span class="text-xl opacity-50">👥</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-red-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Expenses</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-red-600" id="annualExpenses">₦0</h3>
-                            <span class="text-xl opacity-50">📉</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-green-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Raised
+                                        (Annual)</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-green-600" id="annualTotal">₦0</h3>
+                                        <span class="text-xl opacity-50">💰</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-cyan-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Balance</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-blue-600" id="balance">₦0</h3>
-                            <span class="text-xl opacity-50">⚖️</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-red-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Expenses</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-red-600" id="annualExpenses">₦0</h3>
+                                        <span class="text-xl opacity-50">📉</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Collected (Month)</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-purple-600" id="monthlyCollected">₦0</h3>
-                            <span class="text-xl opacity-50">📈</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-cyan-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Balance</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-blue-600" id="balance">₦0</h3>
+                                        <span class="text-xl opacity-50">⚖️</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-orange-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Pending (Month)</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-orange-600" id="monthlyPending">₦0</h3>
-                            <span class="text-xl opacity-50">⏳</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Collected
+                                        (Month)</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-purple-600" id="monthlyCollected">₦0</h3>
+                                        <span class="text-xl opacity-50">📈</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-yellow-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Approvals</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-yellow-600" id="pendingApprovals">0</h3>
-                            <span class="text-xl opacity-50">🔔</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-orange-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Pending
+                                        (Month)</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-orange-600" id="monthlyPending">₦0</h3>
+                                        <span class="text-xl opacity-50">⏳</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-rose-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Messages</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-rose-600" id="unreadMessages">0</h3>
-                            <span class="text-xl opacity-50">💬</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-yellow-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Approvals
+                                    </p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-yellow-600" id="pendingApprovals">0</h3>
+                                        <span class="text-xl opacity-50">🔔</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Welfare</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-indigo-600" id="pendingWelfare">0</h3>
-                            <span class="text-xl opacity-50">🏥</span>
-                        </div>
-                    </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-rose-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Messages</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-rose-600" id="unreadMessages">0</h3>
+                                        <span class="text-xl opacity-50">💬</span>
+                                    </div>
+                                </div>
 
-                    <div class="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
-                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Events</p>
-                        <div class="flex justify-between items-center mt-1">
-                            <h3 class="text-xl font-black text-emerald-600" id="upcomingEvents">0</h3>
-                            <span class="text-xl opacity-50">📅</span>
-                        </div>
-                    </div>
-                </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Welfare</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-indigo-600" id="pendingWelfare">0</h3>
+                                        <span class="text-xl opacity-50">🏥</span>
+                                    </div>
+                                </div>
 
-                <div
-                    class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="text-center md:text-left">
-                        <h4 class="text-blue-800 font-bold">System Status: Active</h4>
-                        <p class="text-blue-600 text-sm">Monthly contribution set to ₦1,500 per member.</p>
-                    </div>
-                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-                        <button onclick="triggerMonthly()"
-                            class="bg-primary text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-blue-800 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
-                            🔄 Generate Monthly Dues
-                        </button>
-                        <button onclick="sendReminders()"
-                            class="bg-orange-600 text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-orange-700 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
-                            🔔 Send Reminders
-                        </button>
-                    </div>
-                </div>
+                                <div class="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
+                                    <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Events</p>
+                                    <div class="flex justify-between items-center mt-1">
+                                        <h3 class="text-xl font-black text-emerald-600" id="upcomingEvents">0</h3>
+                                        <span class="text-xl opacity-50">📅</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- Recent Activity Widgets -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Recent Welfare -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                            <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Recent Welfare</h4>
-                            <a href="/admin/welfare" class="text-[10px] font-bold text-primary hover:underline">View
-                                All</a>
-                        </div>
-                        <div id="recentWelfareList" class="divide-y divide-gray-50">
-                            <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
-                        </div>
-                    </div>
+                            <div
+                                class="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div class="text-center md:text-left">
+                                    <h4 class="text-blue-800 font-bold">System Status: Active</h4>
+                                    <p class="text-blue-600 text-sm">Monthly contribution set to ₦1,500 per member.</p>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                    <button onclick="triggerMonthly()"
+                                        class="bg-primary text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-blue-800 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
+                                        🔄 Generate Monthly Dues
+                                    </button>
+                                    <button onclick="sendReminders()"
+                                        class="bg-orange-600 text-white px-4 py-3 md:py-2 rounded-lg text-sm hover:bg-orange-700 shadow-md transform active:scale-95 transition font-bold w-full sm:w-auto">
+                                        🔔 Send Reminders
+                                    </button>
+                                </div>
+                            </div>
 
-                    <!-- Recent Expenses -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                            <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Recent Expenses</h4>
-                            <a href="/admin/expenses" class="text-[10px] font-bold text-primary hover:underline">View
-                                All</a>
-                        </div>
-                        <div id="recentExpensesList" class="divide-y divide-gray-50">
-                            <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
-                        </div>
-                    </div>
+                            <!-- Recent Activity Widgets -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                                <!-- Recent Welfare -->
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div
+                                        class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Recent
+                                            Welfare</h4>
+                                        <a href="/admin/welfare"
+                                            class="text-[10px] font-bold text-primary hover:underline">View
+                                            All</a>
+                                    </div>
+                                    <div id="recentWelfareList" class="divide-y divide-gray-50">
+                                        <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
+                                    </div>
+                                </div>
 
-                    <!-- Upcoming Events -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
-                            <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Upcoming Events</h4>
-                            <a href="/admin/events/create"
-                                class="text-[10px] font-bold text-primary hover:underline">Manage</a>
-                        </div>
-                        <div id="upcomingEventsList" class="divide-y divide-gray-50">
-                            <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
-                        </div>
-                    </div>
-                </div>
+                                <!-- Recent Expenses -->
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div
+                                        class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Recent
+                                            Expenses</h4>
+                                        <a href="/admin/expenses"
+                                            class="text-[10px] font-bold text-primary hover:underline">View
+                                            All</a>
+                                    </div>
+                                    <div id="recentExpensesList" class="divide-y divide-gray-50">
+                                        <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
+                                    </div>
+                                </div>
 
-                <!-- Pending Approvals Section -->
-                <div id="pendingSection" class="bg-white rounded-xl shadow mb-6 hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-gray-800">⏳ Pending Approvals</h3>
-                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-bold"
-                            id="pendingBadge">0 pending</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-yellow-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Registered</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="pendingTable" class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">No pending approvals
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                <!-- Upcoming Events -->
+                                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                    <div
+                                        class="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest">Upcoming
+                                            Events</h4>
+                                        <a href="/admin/events/create"
+                                            class="text-[10px] font-bold text-primary hover:underline">Manage</a>
+                                    </div>
+                                    <div id="upcomingEventsList" class="divide-y divide-gray-50">
+                                        <div class="p-6 text-center text-gray-400 text-xs italic">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- Members Table -->
-                <div class="bg-white rounded-xl shadow">
-                    <div class="px-6 py-4 border-b border-gray-100">
-                        <h3 class="text-lg font-bold text-gray-800">Registered Alumni</h3>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status
-                                    </th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score
-                                    </th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="membersTable" class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </main>
-        </div>
+                            <!-- Pending Approvals Section -->
+                            <div id="pendingSection" class="bg-white rounded-xl shadow mb-6 hidden">
+                                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                                    <h3 class="text-lg font-bold text-gray-800">⏳ Pending Approvals</h3>
+                                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-bold"
+                                        id="pendingBadge">0 pending</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-yellow-50">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Name
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Email
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Username
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Phone
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Registered</th>
+                                                <th
+                                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                                                    Action
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pendingTable" class="bg-white divide-y divide-gray-200">
+                                            <tr>
+                                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">No pending
+                                                    approvals
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Members Table -->
+                            <div class="bg-white rounded-xl shadow">
+                                <div class="px-6 py-4 border-b border-gray-100">
+                                    <h3 class="text-lg font-bold text-gray-800">Registered Alumni</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Name
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Email
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Role
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Status
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                                    Score
+                                                </th>
+                                                <th
+                                                    class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                                                    Actions
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="membersTable" class="bg-white divide-y divide-gray-200">
+                                            <tr>
+                                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Loading...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </main>
+            </div>
     </div>
 
     <!-- Edit Role Modal -->
@@ -467,7 +422,8 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
-                    allMembers = await res.json();
+                    const result = await res.json();
+                    allMembers = result.data || [];
                     document.getElementById('totalMembers').textContent = allMembers.length;
 
                     const tbody = document.getElementById('membersTable');
@@ -645,7 +601,10 @@
                         { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({
                             newPassword
                         })
-                }); if (res.ok) { alert('Password reset successfully!'); closeResetPasswordModal(); } else {
+                }); if (res.ok) {
+                    const result = await res.json();
+                    alert(result.message || 'Password reset successfully!'); closeResetPasswordModal();
+                } else {
                     const text = await
                         res.text(); console.error('Server error response:', text); try {
                             const error = JSON.parse(text);
@@ -683,15 +642,18 @@
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
-                }); if (resMonthly.ok) {
-                    const data = await resMonthly.json();
+                });
+                if (resMonthly.ok) {
+                    const response = await resMonthly.json();
+                    const data = response.data;
                     document.getElementById('monthlyCollected').textContent = `₦${data.collected.toLocaleString()}`;
                     document.getElementById('monthlyPending').textContent = `₦${data.pending.toLocaleString()}`;
                 } // Annual Stats
                 const resAnnual = await fetch('/api/v1/reports/summary/annual', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }); if (resAnnual.ok) {
-                    const data = await resAnnual.json();
+                    const response = await resAnnual.json();
+                    const data = response.data;
                     document.getElementById('annualTotal').textContent = `₦${data.total.toLocaleString()}`;
                     document.getElementById('annualExpenses').textContent = `₦${data.expenses.toLocaleString()}`;
                     document.getElementById('balance').textContent = `₦${data.balance.toLocaleString()}`;
@@ -702,7 +664,8 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (resOverview.ok) {
-                    const data = await resOverview.json();
+                    const result = await resOverview.json();
+                    const data = result.data || {};
                     document.getElementById('unreadMessages').textContent = data.unreadMessages;
                     document.getElementById('pendingWelfare').textContent = data.pendingWelfare;
                     document.getElementById('upcomingEvents').textContent = data.upcomingEvents;
@@ -767,7 +730,8 @@
         ${token}`
                         }
                     }); if (res.ok) {
-                        const members = await res.json(); // Basic JWT decode to find current user const
+                        const result = await res.json();
+                        const members = result.data || []; // Basic JWT decode to find current user const
                         base64Url = token.split('.')[1]; const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); const
                             jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
                                 return '%' + ('00' +
@@ -884,7 +848,7 @@
 
                 if (res.ok) {
                     const result = await res.json();
-                    alert('Role updated successfully!');
+                    alert(result.message || 'Role updated successfully!');
                     closeEditModal();
                     fetchMembers(); // Refresh the table
                 } else {
@@ -967,7 +931,8 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
-                    const pendingUsers = await res.json();
+                    const result = await res.json();
+                    const pendingUsers = result.data || [];
                     document.getElementById('pendingApprovals').textContent = pendingUsers.length;
 
                     const pendingSection = document.getElementById('pendingSection');

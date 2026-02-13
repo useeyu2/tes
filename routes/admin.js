@@ -45,7 +45,7 @@ router.post('/members', async (req, res) => {
         res.json({
             success: true,
             message: 'Member created successfully',
-            user: {
+            data: {
                 _id: newUser._id,
                 full_name: newUser.full_name,
                 email: newUser.email,
@@ -53,7 +53,7 @@ router.post('/members', async (req, res) => {
             }
         });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -61,9 +61,9 @@ router.post('/members', async (req, res) => {
 router.get('/members', async (req, res) => {
     try {
         const members = await User.find().select('-hashed_password');
-        res.json(members);
+        res.json({ success: true, data: members });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -86,12 +86,13 @@ router.get('/transactions', async (req, res) => {
             payment_method: tx.payment_method,
             reference_number: tx.reference_number,
             created_at: tx.created_at,
-            contribution_id: tx.contribution_id
+            contribution_id: tx.contribution_id,
+            status: tx.status
         }));
 
-        res.json(result);
+        res.json({ success: true, data: result });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -119,9 +120,7 @@ router.patch('/members/:memberId/role', async (req, res) => {
         }
 
         res.json({
-            success: true,
-            message: 'Role updated successfully',
-            user: {
+            data: {
                 _id: user._id,
                 full_name: user.full_name,
                 email: user.email,
@@ -129,7 +128,7 @@ router.patch('/members/:memberId/role', async (req, res) => {
             }
         });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -152,7 +151,7 @@ router.post('/members/:id/reset-password', async (req, res) => {
         res.json({ success: true, message: 'Password reset successfully' });
     } catch (e) {
         console.error('[ADMIN] Password reset error:', e);
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -160,9 +159,9 @@ router.post('/members/:id/reset-password', async (req, res) => {
 router.get('/pending-users', async (req, res) => {
     try {
         const pendingUsers = await User.find({ is_approved: false }).select('-hashed_password');
-        res.json(pendingUsers);
+        res.json({ success: true, data: pendingUsers });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -184,7 +183,7 @@ router.patch('/users/:id/approve', async (req, res) => {
         res.json({
             success: true,
             message: 'User approved successfully',
-            user: {
+            data: {
                 _id: user._id,
                 full_name: user.full_name,
                 email: user.email,
@@ -193,7 +192,7 @@ router.patch('/users/:id/approve', async (req, res) => {
             }
         });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -216,14 +215,14 @@ router.patch('/members/:id/status', async (req, res) => {
         res.json({
             success: true,
             message: `User ${is_active ? 'activated' : 'deactivated'} successfully`,
-            user: {
+            data: {
                 _id: user._id,
                 full_name: user.full_name,
                 is_active: user.is_active
             }
         });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -235,7 +234,7 @@ router.post('/trigger-reminders', async (req, res) => {
         const count = await reminderService.sendReminders();
         res.json({ success: true, message: `Reminders sent to ${count} members` });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 
@@ -250,22 +249,31 @@ router.get('/overview', async (req, res) => {
         const [
             unreadMessages,
             pendingWelfare,
+            pendingApprovals,
             upcomingEvents,
             recentWelfare,
             recentExpenses,
             upcomingEventsList
         ] = await Promise.all([
-            Message.countDocuments({ receiver_id: req.user.id, is_read: false }),
+            Message.countDocuments({
+                $or: [
+                    { receiver_id: req.user.id },
+                    { receiver_id: null, sender_role: 'Member' }
+                ],
+                is_read: false
+            }),
             Welfare.countDocuments({ status: 'Pending' }),
+            Transaction.countDocuments({ status: 'Pending' }), // Approvals card
             Event.countDocuments({ date: { $gte: new Date() } }),
             Welfare.find().populate('user_id', 'full_name').sort({ created_at: -1 }).limit(3),
             Expense.find().sort({ date: -1 }).limit(3),
             Event.find({ date: { $gte: new Date() } }).sort({ date: 1 }).limit(3)
         ]);
 
-        res.json({
+        const stats = {
             unreadMessages,
             pendingWelfare,
+            pendingApprovals,
             upcomingEvents,
             recentWelfare: recentWelfare.map(r => ({
                 _id: r._id,
@@ -276,9 +284,10 @@ router.get('/overview', async (req, res) => {
             })),
             recentExpenses,
             upcomingEventsList
-        });
+        };
+        res.json({ success: true, data: stats });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
     }
 });
 

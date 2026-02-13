@@ -26,197 +26,145 @@
 
 <body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
     <div class="flex h-screen overflow-hidden relative">
-        <!-- Sidebar Overlay (Mobile) -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()"
-            class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+        <%- include('../partials/sidebar') %>
 
-        <!-- Sidebar -->
-        <aside id="adminSidebar"
-            class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-            <div class="p-8">
-                <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
-                <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <%- include('../partials/header', { title: 'Upload Memory' }) %>
 
-                <!-- Admin Details in Sidebar -->
-                <div class="bg-white/10 rounded-xl p-3 border border-white/10 mb-2">
-                    <p class="text-[10px] uppercase tracking-widest text-white/60 font-bold" id="sidebarAdminRole">
-                        Loading...</p>
-                    <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
-                </div>
-            </div>
-            <nav class="flex-1 px-4 space-y-2">
-                <a href="/admin/dashboard"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>👥</span> Members
-                </a>
-                <a href="/admin/payments"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💰</span> Payments
-                </a>
-                <a href="/admin/expenses"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📉</span> Expenses
-                </a>
-                <a href="/admin/welfare"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🏥</span> Welfare
-                </a>
-                <a href="/admin/messages"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💬</span> Messages
-                </a>
-                <a href="/contributions"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💳</span> My Contribution
-                </a>
-                <a href="/admin/events/create"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📅</span> Create Event
-                </a>
-                <a href="/admin/gallery/upload"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl bg-white/10 text-white font-bold transition">
-                    <span>🖼️</span> Upload Memory
-                </a>
-                <a href="/admin/voting/setup"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🗳️</span> Setup Elections
-                </a>
-            </nav>
-            <div class="p-4">
-                <button onclick="handleLogout()"
-                    class="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold transition">
-                    <span>🚪</span> Logout
-                </button>
-            </div>
-        </aside>
+                    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                        <div class="max-w-5xl mx-auto pt-10">
+                            <form onsubmit="uploadPhotos(event)"
+                                class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 space-y-6">
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header
-                class="glass bg-white/70 sticky top-0 z-50 p-4 px-4 md:px-8 flex justify-between items-center border-b border-gray-200">
-                <div class="flex items-center gap-3 md:gap-4">
-                    <!-- Mobile Hamburger -->
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
-                    </button>
-
-                    <h2 class="text-lg md:text-xl font-black text-gray-800 uppercase tracking-tight">Upload Memory</h2>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <div class="hidden lg:block border-l pl-4 border-gray-200 mr-4">
-                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">ALUMNI SYSTEM</p>
-                        <p class="text-[10px] font-semibold text-gray-600">Standardized Admin View</p>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                <div class="max-w-2xl mx-auto pt-10">
-                    <form onsubmit="uploadPhoto(event)"
-                        class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 space-y-6">
-
-                        <!-- Drag & Drop Area -->
-                        <div class="relative group">
-                            <input type="file" id="photo"
-                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/*"
-                                required onchange="previewImage(this)">
-                            <div id="dropZone"
-                                class="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center transition group-hover:border-blue-500 group-hover:bg-blue-50/50">
-                                <div id="previewContainer" class="hidden mb-4">
-                                    <img id="preview" src="" class="max-h-64 mx-auto rounded-lg shadow-lg">
-                                </div>
-                                <div id="placeholder">
-                                    <div
-                                        class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500 text-2xl group-hover:scale-110 transition">
-                                        <i class="fas fa-cloud-upload-alt"></i>
+                                <!-- Drag & Drop Area -->
+                                <div class="relative group">
+                                    <input type="file" id="photos" multiple
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        accept="image/*" onchange="handleFileSelect(this)">
+                                    <div id="dropZone"
+                                        class="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center transition group-hover:border-blue-500 group-hover:bg-blue-50/50">
+                                        <div id="placeholder">
+                                            <div
+                                                class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-500 text-2xl group-hover:scale-110 transition">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                            </div>
+                                            <h3 class="font-black text-gray-700">Click or Drag photos here</h3>
+                                            <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">
+                                                Select multiple photos (Max 10 files, JPG/PNG, 5MB each)</p>
+                                        </div>
                                     </div>
-                                    <h3 class="font-bold text-gray-700">Click or Drag photo here</h3>
-                                    <p class="text-xs text-gray-400 mt-2">Supports JPG, PNG (Max 5MB)</p>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Caption
-                                (Optional)</label>
-                            <input type="text" id="caption"
-                                class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition bg-gray-50/50 font-medium"
-                                placeholder="Describe this moment...">
-                        </div>
+                                <!-- Preview Grid -->
+                                <div id="previewGrid"
+                                    class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <!-- Preview items will be inserted here -->
+                                </div>
 
-                        <div class="pt-6 border-t border-slate-100">
-                            <button type="submit"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-600/20 transition transform hover:-translate-y-0.5 active:translate-y-0 text-sm">
-                                <i class="fas fa-check mr-2"></i> Upload Photo
-                            </button>
+                                <div class="pt-6 border-t border-slate-50">
+                                    <button type="submit"
+                                        class="w-full bg-primary hover:bg-blue-800 text-white py-4 rounded-xl font-black shadow-xl shadow-blue-500/20 transition transform active:scale-95 uppercase tracking-widest">
+                                        <i class="fas fa-check mr-2"></i> <span id="uploadBtnText">Upload Photos</span>
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                    </form>
-                </div>
-            </main>
-        </div>
+                    </main>
+            </div>
     </div>
 
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('adminSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
+        let selectedFiles = [];
+
+        function handleFileSelect(input) {
+            if (input.files && input.files.length > 0) {
+                // Limit to 10 files
+                const files = Array.from(input.files).slice(0, 10);
+                selectedFiles = files;
+
+                if (files.length > 10) {
+                    alert('Maximum 10 photos allowed. Only the first 10 will be selected.');
+                }
+
+                renderPreviews();
             }
         }
 
-        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+        function renderPreviews() {
+            const grid = document.getElementById('previewGrid');
+            const placeholder = document.getElementById('placeholder');
 
-        async function fetchMe() {
-            const token = localStorage.getItem('access_token');
-            if (!token) return;
-            try {
-                const res = await fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                    const user = await res.json();
-                    document.getElementById('sidebarAdminName').textContent = user.full_name;
-                    document.getElementById('sidebarAdminRole').textContent = user.role;
-                }
-            } catch (e) { console.error(e); }
-        }
+            if (selectedFiles.length === 0) {
+                grid.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                return;
+            }
 
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
+            placeholder.classList.add('hidden');
+            grid.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    document.getElementById('preview').src = e.target.result;
-                    document.getElementById('previewContainer').classList.remove('hidden');
-                    document.getElementById('placeholder').classList.add('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'bg-gray-50 rounded-xl p-4 border border-gray-200 relative group';
+                    previewItem.innerHTML = `
+                        <button type="button" onclick="removePhoto(${index})" 
+                            class="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition z-10 flex items-center justify-center">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                        <img src="${e.target.result}" class="w-full h-48 object-cover rounded-lg mb-3">
+                        <input type="text" 
+                            class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm" 
+                            placeholder="Caption (optional)"
+                            data-index="${index}"
+                            id="caption-${index}">
+                        <p class="text-xs text-gray-400 mt-2 truncate">${file.name}</p>
+                        <p class="text-xs text-gray-400">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    `;
+                    grid.appendChild(previewItem);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Update button text
+            document.getElementById('uploadBtnText').textContent =
+                `Upload ${selectedFiles.length} Photo${selectedFiles.length > 1 ? 's' : ''}`;
         }
 
-        async function uploadPhoto(e) {
+        function removePhoto(index) {
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        }
+
+        async function uploadPhotos(e) {
             e.preventDefault();
             const token = localStorage.getItem('access_token');
             if (!token) return window.location.href = '/login';
 
-            const photoInput = document.getElementById('photo');
-            const caption = document.getElementById('caption').value;
-
-            if (!photoInput.files[0]) return alert('Please select a photo');
+            if (selectedFiles.length === 0) {
+                return alert('Please select at least one photo');
+            }
 
             const formData = new FormData();
-            formData.append('photo', photoInput.files[0]);
-            formData.append('caption', caption);
+
+            // Append all photos
+            selectedFiles.forEach((file, index) => {
+                formData.append('photos', file);
+            });
+
+            // Collect captions
+            const captions = selectedFiles.map((_, index) => {
+                const captionInput = document.getElementById(`caption-${index}`);
+                return captionInput ? captionInput.value : '';
+            });
+            formData.append('captions', JSON.stringify(captions));
 
             const btn = e.target.querySelector('button');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Uploading...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> UPLOADING...';
             btn.disabled = true;
 
             try {
@@ -229,22 +177,20 @@
                 const result = await res.json();
 
                 if (res.ok) {
-                    alert('Photo uploaded successfully!');
+                    alert(result.message || 'Photos uploaded successfully!');
                     window.location.href = '/gallery';
                 } else {
-                    alert(result.detail || 'Failed to upload photo');
+                    alert(result.message || result.detail || 'Failed to upload photos');
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
             } catch (err) {
                 console.error(err);
-                alert('An error occurred');
+                alert('Upload failed. Please try again.');
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
         }
-
-        fetchMe();
     </script>
 </body>
 

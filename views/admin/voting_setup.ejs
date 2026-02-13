@@ -26,194 +26,120 @@
 
 <body class="bg-gray-50 text-gray-900 bg-pattern min-h-screen">
     <div class="flex h-screen overflow-hidden relative">
-        <!-- Sidebar Overlay (Mobile) -->
-        <div id="sidebarOverlay" onclick="toggleSidebar()"
-            class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+        <%- include('../partials/sidebar') %>
 
-        <!-- Sidebar -->
-        <aside id="adminSidebar"
-            class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-            <div class="p-8">
-                <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
-                <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
-
-                <!-- Admin Details in Sidebar -->
-                <div class="bg-white/10 rounded-xl p-3 border border-white/10 mb-2">
-                    <p class="text-[10px] uppercase tracking-widest text-white/60 font-bold" id="sidebarAdminRole">
-                        Loading...</p>
-                    <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
-                </div>
-            </div>
-            <nav class="flex-1 px-4 space-y-2">
-                <a href="/admin/dashboard"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>👥</span> Members
-                </a>
-                <a href="/admin/payments"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💰</span> Payments
-                </a>
-                <a href="/admin/expenses"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📉</span> Expenses
-                </a>
-                <a href="/admin/welfare"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🏥</span> Welfare
-                </a>
-                <a href="/admin/messages"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💬</span> Messages
-                </a>
-                <a href="/contributions"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>💳</span> My Contribution
-                </a>
-                <a href="/admin/events/create"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>📅</span> Create Event
-                </a>
-                <a href="/admin/gallery/upload"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
-                    <span>🖼️</span> Upload Memory
-                </a>
-                <a href="/admin/voting/setup"
-                    class="flex items-center gap-3 py-3 px-6 rounded-2xl bg-white/10 text-white font-bold transition">
-                    <span>🗳️</span> Setup Elections
-                </a>
-            </nav>
-            <div class="p-4">
-                <button onclick="handleLogout()"
-                    class="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold transition">
-                    <span>🚪</span> Logout
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header
-                class="glass bg-white/70 sticky top-0 z-50 p-4 px-4 md:px-8 flex justify-between items-center border-b border-gray-200">
-                <div class="flex items-center gap-3 md:gap-4">
-                    <!-- Mobile Hamburger -->
-                    <button onclick="toggleSidebar()" class="md:hidden p-2 hover:bg-gray-100 rounded-lg">
-                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16"></path>
-                        </svg>
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <% const actions=` <button onclick="openPositionModal()"
+                    class="bg-primary hover:bg-blue-800 text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-blue-500/20 transition transform active:scale-95 text-xs uppercase tracking-widest">
+                    <i class="fas fa-plus mr-2"></i> New Position
                     </button>
+                    `;
+                    %>
+                    <%- include('../partials/header', { title: 'Election Setup' , actions: actions }) %>
 
-                    <h2 class="text-lg md:text-xl font-black text-gray-800 uppercase tracking-tight">Setup Elections
-                    </h2>
-                </div>
+                        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                <!-- Positions List -->
+                                <div class="lg:col-span-1 space-y-4" id="positionsList">
+                                    <div class="animate-pulse bg-white h-20 rounded-2xl"></div>
+                                    <div class="animate-pulse bg-white h-20 rounded-2xl"></div>
+                                </div>
 
-                <div class="flex items-center gap-4">
-                    <div class="hidden lg:block border-l pl-4 border-gray-200 mr-4">
-                        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">ALUMNI SYSTEM</p>
-                        <p class="text-[10px] font-semibold text-gray-600">Standardized Admin View</p>
-                    </div>
-                    <button onclick="openPositionModal()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow-lg shadow-blue-600/20 transition text-sm">
-                        <i class="fas fa-plus mr-2"></i> New Position
-                    </button>
-                    <button onclick="handleLogout()"
-                        class="bg-red-500 hover:bg-red-600 text-white p-2 md:px-4 md:py-2 rounded-lg text-sm font-bold transition">
-                        <span class="hidden md:inline">Logout</span>
-                        <span class="md:hidden">🚪</span>
-                    </button>
-                </div>
-            </header>
+                                <!-- Candidates Area -->
+                                <div class="lg:col-span-2">
+                                    <div
+                                        class="bg-white rounded-[2.5rem] shadow-xl p-10 border border-slate-50 min-h-[500px] glass">
+                                        <div class="flex justify-between items-center mb-8">
+                                            <h2 class="text-2xl font-black text-gray-900 tracking-tight"
+                                                id="selectedPosTitle">
+                                                Select a Position
+                                            </h2>
+                                            <button id="addCandidateBtn" onclick="openCandidateModal()" disabled
+                                                class="bg-gray-100 text-gray-400 px-6 py-3 rounded-2xl font-black text-xs transition cursor-not-allowed uppercase tracking-widest">
+                                                <i class="fas fa-user-plus mr-2"></i> Add Candidate
+                                            </button>
+                                        </div>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Positions List -->
-                    <div class="lg:col-span-1 space-y-4" id="positionsList">
-                        <div class="animate-pulse bg-white h-20 rounded-xl"></div>
-                        <div class="animate-pulse bg-white h-20 rounded-xl"></div>
-                    </div>
-
-                    <!-- Candidates Area -->
-                    <div class="lg:col-span-2">
-                        <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 min-h-[500px]">
-                            <div class="flex justify-between items-center mb-6">
-                                <h2 class="text-xl font-black text-slate-800" id="selectedPosTitle">Select a Position
-                                </h2>
-                                <button id="addCandidateBtn" onclick="openCandidateModal()" disabled
-                                    class="bg-gray-100 text-gray-400 px-4 py-2 rounded-lg font-bold text-xs transition cursor-not-allowed">
-                                    <i class="fas fa-user-plus mr-1"></i> Add Candidate
-                                </button>
-                            </div>
-
-                            <div id="candidatesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="col-span-full text-center py-20 text-gray-400">
-                                    Select a position from the left to manage candidates.
+                                        <div id="candidatesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="col-span-full text-center py-24 text-gray-400 font-bold italic">
+                                                Select a position from the left to manage candidates.
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
+                        </main>
+            </div>
     </div>
 
     <!-- Modals -->
     <!-- Position Modal -->
-    <div id="positionModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
-        <form onsubmit="createPosition(event)" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Create Position</h3>
-            <div class="space-y-4">
-                <input type="text" name="title" placeholder="Position Title (e.g. President)" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-                <textarea name="description" placeholder="Description"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"></textarea>
+    <div id="positionModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
+        <form onsubmit="createPosition(event)" class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md p-10">
+            <h3 class="text-2xl font-black text-gray-900 mb-8">Create Position</h3>
+            <div class="space-y-6">
+                <div>
+                    <label
+                        class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Title</label>
+                    <input type="text" name="title" placeholder="e.g. President" required
+                        class="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 bg-gray-50/50 font-bold text-gray-700">
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Description</label>
+                    <textarea name="description" placeholder="Short description..."
+                        class="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 bg-gray-50/50 font-bold text-gray-700"
+                        rows="3"></textarea>
+                </div>
             </div>
-            <div class="flex gap-3 mt-8">
+            <div class="flex gap-4 mt-10">
                 <button type="button" onclick="closeModal('positionModal')"
-                    class="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-gray-600">Cancel</button>
-                <button type="submit" class="flex-1 py-3 bg-blue-600 rounded-lg font-bold text-white">Create</button>
+                    class="flex-1 py-4 bg-gray-50 rounded-2xl font-black text-gray-400 uppercase tracking-widest text-xs hover:bg-gray-100">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-4 bg-primary rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 hover:bg-blue-800 transition uppercase tracking-widest text-xs">Create</button>
             </div>
         </form>
     </div>
 
     <!-- Candidate Modal -->
-    <div id="candidateModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
-        <form onsubmit="createCandidate(event)" class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6">Add Candidate</h3>
-            <div class="space-y-4">
-                <input type="text" name="full_name" placeholder="Full Name" required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600">
-                <textarea name="manifesto" placeholder="Manifesto / Short Bio"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"></textarea>
+    <div id="candidateModal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
+        <form onsubmit="createCandidate(event)" class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md p-10">
+            <h3 class="text-2xl font-black text-gray-900 mb-8">Add Candidate</h3>
+            <div class="space-y-6">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Photo</label>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Full
+                        Name</label>
+                    <input type="text" name="full_name" placeholder="Full Name" required
+                        class="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 bg-gray-50/50 font-bold text-gray-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Manifesto
+                        / Bio</label>
+                    <textarea name="manifesto" placeholder="Short manifesto..."
+                        class="w-full px-6 py-4 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 bg-gray-50/50 font-bold text-gray-700"
+                        rows="3"></textarea>
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Photo</label>
                     <input type="file" name="photo" accept="image/*"
-                        class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        class="w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-primary hover:file:bg-blue-100" />
                 </div>
             </div>
-            <div class="flex gap-3 mt-8">
+            <div class="flex gap-4 mt-10">
                 <button type="button" onclick="closeModal('candidateModal')"
-                    class="flex-1 py-3 bg-gray-100 rounded-lg font-bold text-gray-600">Cancel</button>
-                <button type="submit" class="flex-1 py-3 bg-blue-600 rounded-lg font-bold text-white">Add
+                    class="flex-1 py-4 bg-gray-50 rounded-2xl font-black text-gray-400 uppercase tracking-widest text-xs hover:bg-gray-100">Cancel</button>
+                <button type="submit"
+                    class="flex-1 py-4 bg-primary rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 hover:bg-blue-800 transition uppercase tracking-widest text-xs">Add
                     Candidate</button>
             </div>
         </form>
     </div>
 
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('adminSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        }
-
-        async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
-
         let allData = { positions: [], candidates: [] };
         let selectedPositionId = null;
         const token = localStorage.getItem('access_token');
@@ -221,30 +147,25 @@
 
         async function loadData() {
             try {
-                // Fetch me for sidebar
-                const meRes = await fetch('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
-                if (meRes.ok) {
-                    const user = await meRes.json();
-                    document.getElementById('sidebarAdminName').textContent = user.full_name;
-                    document.getElementById('sidebarAdminRole').textContent = user.role;
-                }
-
                 const res = await fetch('/api/v1/voting/data', { headers: { 'Authorization': `Bearer ${token}` } });
-                allData = await res.json();
-                renderPositions();
-                if (selectedPositionId) renderCandidates(selectedPositionId);
+                const result = await res.json();
+                if (result.success) {
+                    allData = result.data;
+                    renderPositions();
+                    if (selectedPositionId) renderCandidates(selectedPositionId);
+                }
             } catch (e) { console.error(e); }
         }
 
         function renderPositions() {
             const list = document.getElementById('positionsList');
             list.innerHTML = allData.positions.map(p => `
-                <div onclick="selectPosition('${p._id}', '${p.title}')" 
-                    class="p-4 rounded-xl cursor-pointer transition border border-transparent hover:border-blue-200 hover:bg-white hover:shadow-md ${selectedPositionId === p._id ? 'bg-white border-blue-500 shadow-lg ring-2 ring-blue-500/20' : 'bg-white/50'}">
-                    <h3 class="font-bold text-gray-800">${p.title}</h3>
-                    <p class="text-xs text-gray-500 truncate">${p.description || 'No description'}</p>
-                </div>
-            `).join('');
+            <div onclick="selectPosition('${p._id}', '${p.title}')" 
+                class="p-6 rounded-[2rem] cursor-pointer transition border-2 ${selectedPositionId === p._id ? 'bg-white border-primary shadow-2xl scale-[1.02]' : 'bg-white/50 border-transparent hover:bg-white hover:border-blue-100'}">
+                <h3 class="font-black text-gray-900 tracking-tight">${p.title}</h3>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest truncate mt-1">${p.description || 'No description'}</p>
+            </div>
+        `).join('');
         }
 
         function renderCandidates(posId) {
@@ -252,21 +173,21 @@
             const candidates = allData.candidates.filter(c => c.position._id === posId || c.position === posId);
 
             if (candidates.length === 0) {
-                grid.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400">No candidates added yet.</div>';
+                grid.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400 font-bold italic">No candidates added yet for this position.</div>';
                 return;
             }
 
             grid.innerHTML = candidates.map(c => `
-                <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
-                         ${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover">` : `<i class="fas fa-user text-gray-400 text-lg m-auto h-full flex items-center justify-center"></i>`}
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-800">${c.full_name}</h4>
-                        <p class="text-xs text-gray-500 line-clamp-1">${c.manifesto || 'No bio'}</p>
-                    </div>
+            <div class="flex items-center gap-5 p-5 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                <div class="w-16 h-16 rounded-2xl bg-gray-50 overflow-hidden flex-shrink-0 border border-gray-100">
+                     ${c.photoUrl ? `<img src="${c.photoUrl}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-gray-300"><i class="fas fa-user text-2xl"></i></div>`}
                 </div>
-            `).join('');
+                <div>
+                    <h4 class="font-black text-gray-900 tracking-tight">${c.full_name}</h4>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest line-clamp-1 mt-0.5">${c.manifesto || 'No bio'}</p>
+                </div>
+            </div>
+        `).join('');
         }
 
         function selectPosition(id, title) {
@@ -278,7 +199,7 @@
             const btn = document.getElementById('addCandidateBtn');
             btn.disabled = false;
             btn.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed');
-            btn.classList.add('bg-green-600', 'text-white', 'hover:bg-green-700', 'shadow-lg');
+            btn.classList.add('bg-primary', 'text-white', 'hover:bg-blue-800', 'shadow-xl', 'shadow-blue-500/20');
         }
 
         function openPositionModal() {
@@ -294,17 +215,14 @@
             try {
                 const res = await fetch('/api/v1/voting/positions', {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 if (res.ok) {
                     closeModal('positionModal');
                     e.target.reset();
                     loadData();
-                } else alert('Failed to create position');
+                }
             } catch (e) { console.error(e); }
         }
 
@@ -328,7 +246,7 @@
                     closeModal('candidateModal');
                     e.target.reset();
                     loadData();
-                } else alert('Failed to add candidate');
+                }
             } catch (e) { console.error(e); }
         }
 

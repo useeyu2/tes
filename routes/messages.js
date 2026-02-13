@@ -3,69 +3,61 @@ const router = express.Router();
 const Message = require('../models/Message');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { isAdmin } = require('../middlewares/authMiddleware');
+
+// General middleware for any logged in user
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (e) {
+        res.status(401).json({ detail: 'Invalid or expired token' });
+    }
+};
 
 // Send Message (Member to Admin)
-router.post('/send', async (req, res) => {
+router.post('/send', verifyToken, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
         const { content, subject } = req.body;
 
         const message = new Message({
-            sender_id: decoded.id,
+            sender_id: req.user.id,
             sender_role: 'Member',
             content,
             subject: subject || 'General Inquiry'
         });
 
         await message.save();
-        res.json({ success: true, message: 'Message sent to admin.' });
+        res.json({ success: true, message: 'Message sent to admin.', data: message });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // Get My Messages (Member)
-router.get('/my', async (req, res) => {
+router.get('/my', verifyToken, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
         const messages = await Message.find({
             $or: [
-                { sender_id: decoded.id },
-                { receiver_id: decoded.id }
+                { sender_id: req.user.id },
+                { receiver_id: req.user.id }
             ]
         }).sort({ created_at: 1 });
 
-        res.json(messages);
+        res.json({ success: true, data: messages });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // Admin: Get all conversations (list unique members who sent messages)
-router.get('/admin/conversations', async (req, res) => {
+router.get('/admin/conversations', isAdmin, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        // Verify admin role
-        const user = await User.findById(decoded.id);
-        if (!user || user.role === 'Member') {
-            return res.status(403).json({ detail: 'Access Denied: Admin role required' });
-        }
-
         const members = await Message.distinct('sender_id', { sender_role: 'Member' });
         const conversations = await User.find({ _id: { $in: members } }, 'full_name email phone profile_picture');
 
@@ -87,26 +79,15 @@ router.get('/admin/conversations', async (req, res) => {
             };
         }));
 
-        res.json(enhancedConvs);
+        res.json({ success: true, data: enhancedConvs });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // Admin: Get specific conversation
-router.get('/admin/user/:id', async (req, res) => {
+router.get('/admin/user/:id', isAdmin, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const admin = await User.findById(decoded.id);
-        if (!admin || admin.role === 'Member') {
-            return res.status(403).json({ detail: 'Access Denied: Admin role required' });
-        }
-
         const messages = await Message.find({
             $or: [
                 { sender_id: req.params.id },
@@ -120,39 +101,28 @@ router.get('/admin/user/:id', async (req, res) => {
             { is_read: true }
         );
 
-        res.json(messages);
+        res.json({ success: true, data: messages });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // Admin: Reply
-router.post('/admin/reply', async (req, res) => {
+router.post('/admin/reply', isAdmin, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const admin = await User.findById(decoded.id);
-        if (!admin || admin.role === 'Member') {
-            return res.status(403).json({ detail: 'Access Denied: Admin role required' });
-        }
-
         const { receiver_id, content } = req.body;
 
         const message = new Message({
-            sender_id: decoded.id,
+            sender_id: req.user.id,
             receiver_id,
             sender_role: 'Admin',
             content
         });
 
         await message.save();
-        res.json({ success: true, message: 'Reply sent.' });
+        res.json({ success: true, message: 'Reply sent.', data: message });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 

@@ -6,6 +6,7 @@ const User = require('../models/User');
 const AuditLog = require('../models/AuditLog');
 const upload = require('../services/uploadService');
 const jwt = require('jsonwebtoken');
+const { isAdmin } = require('../middlewares/authMiddleware');
 
 // Middleware to check auth (simplified)
 const auth = (req, res, next) => {
@@ -15,7 +16,7 @@ const auth = (req, res, next) => {
 };
 
 // Generate Monthly Contributions (Admin)
-router.post('/generate-monthly', async (req, res) => {
+router.post('/generate-monthly', isAdmin, async (req, res) => {
     try {
         const today = new Date();
         const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
@@ -44,7 +45,7 @@ router.post('/generate-monthly', async (req, res) => {
             details: { count, month }
         });
 
-        res.json({ message: `Generated ${count} contributions for ${month}` });
+        res.json({ success: true, message: `Generated ${count} contributions for ${month}`, data: { count, month } });
     } catch (e) {
         res.status(500).json({ detail: e.message });
     }
@@ -100,16 +101,27 @@ router.get('/status-summary', async (req, res) => {
                 return { month: monthStr, status: 'Pending', amount: 1500 };
             }
 
+            // Determine if the month is in the past or current month
+            const monthDate = new Date(currentYear, parseInt(m) - 1, 1);
+            const now = new Date();
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const isPastOrCurrent = monthDate <= currentMonthStart;
+
             // Check if contribution record exists (due generated but not paid)
             if (contribution) {
                 return { month: monthStr, status: 'Due', amount: contribution.amount_due };
             }
 
-            // No contribution generated yet for this month
+            // [FIX] If no contribution record generated yet, but month is past or current, treat as 'Due'
+            if (isPastOrCurrent) {
+                return { month: monthStr, status: 'Due', amount: 1500 };
+            }
+
+            // No contribution generated yet for this month (future months)
             return { month: monthStr, status: 'Unpaid', amount: null };
         });
 
-        res.json(summary);
+        res.json({ success: true, data: summary });
     } catch (e) {
         console.error('Status Summary Error:', e.message);
         res.status(500).json({ detail: e.message });
@@ -133,7 +145,7 @@ router.get('/my-stats', async (req, res) => {
 
         const totalPaid = transactions.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
-        res.json({ totalPaid, count: transactions.length });
+        res.json({ success: true, data: { totalPaid, count: transactions.length } });
     } catch (e) {
         console.error('My Stats Error:', e.message);
         res.status(500).json({ detail: e.message });
@@ -148,7 +160,7 @@ router.get('/my-history', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         const history = await Transaction.find({ user_id: decoded.id }).sort({ created_at: -1 });
-        res.json(history);
+        res.json({ success: true, data: history });
     } catch (e) {
         res.status(500).json({ detail: e.message });
     }
@@ -228,7 +240,7 @@ router.post('/submit-payment', upload.single('proof'), async (req, res) => {
 });
 
 // Verify Payment (Admin)
-router.post('/verify-payment/:id', async (req, res) => {
+router.post('/verify-payment/:id', isAdmin, async (req, res) => {
     try {
         const { status } = req.body; // 'Verified' or 'Rejected'
         const tx = await Transaction.findById(req.params.id);
@@ -236,6 +248,7 @@ router.post('/verify-payment/:id', async (req, res) => {
 
         tx.status = status;
         tx.verified_at = new Date();
+        tx.verified_by = req.user?.id;
         await tx.save();
 
         if (status === 'Verified') {
@@ -284,14 +297,14 @@ router.post('/verify-payment/:id', async (req, res) => {
             details: { amount: tx.amount, months: tx.months }
         });
 
-        res.json({ message: `Payment ${status}` });
+        res.json({ success: true, message: `Payment ${status}`, data: tx });
     } catch (e) {
         res.status(500).json({ detail: e.message });
     }
 });
 
 // Revert Payment (Admin)
-router.post('/revert-payment/:id', async (req, res) => {
+router.post('/revert-payment/:id', isAdmin, async (req, res) => {
     try {
         const tx = await Transaction.findById(req.params.id);
         if (!tx) return res.status(404).json({ detail: "Transaction not found" });
@@ -307,34 +320,42 @@ router.post('/revert-payment/:id', async (req, res) => {
         // Revert points and contribution status if it was verified
         if (oldStatus === 'Verified') {
             const monthList = tx.months && tx.months.length > 0 ? tx.months : [tx.month];
-            let totalPoints = 0;
+            let totalPointsToDeduct = 0;
 
             for (const m of monthList) {
                 if (!m) continue;
 
-                // Revert Contribution Record
-                await Contribution.findOneAndUpdate(
-                    { user_id: tx.user_id, month: m },
-                    { status: 'Due', amount_paid: 0 }
-                );
+                // Find the contribution to check due_date
+                const contribution = await Contribution.findOne({ user_id: tx.user_id, month: m });
+                if (contribution) {
+                    // Recalculate points that were awarded: 10 if on-time, 5 if late
+                    // We check against verified_at because that's when points were given
+                    let pointsGiven = 5;
+                    if (tx.verified_at <= contribution.due_date) pointsGiven = 10;
+                    totalPointsToDeduct += pointsGiven;
 
-                totalPoints += 10;
+                    // Revert Contribution Record
+                    contribution.status = 'Due';
+                    contribution.amount_paid = 0;
+                    contribution.paid_at = undefined;
+                    await contribution.save();
+                }
             }
 
-            if (totalPoints > 0) {
-                await User.findByIdAndUpdate(tx.user_id, { $inc: { contribution_score: -totalPoints } });
+            if (totalPointsToDeduct > 0) {
+                await User.findByIdAndUpdate(tx.user_id, { $inc: { contribution_score: -totalPointsToDeduct } });
             }
         }
 
         await AuditLog.create({
-            actor_id: "ADMIN",
+            actor_id: req.user?.id || "ADMIN",
             action: `PAYMENT_REVERTED`,
             resource: "transactions",
             target_id: tx._id,
             details: { amount: tx.amount, prev_status: oldStatus }
         });
 
-        res.json({ message: "Payment approval reverted successfully" });
+        res.json({ success: true, message: "Payment approval reverted successfully", data: tx });
     } catch (e) {
         console.error('Revert Payment Error:', e.message);
         res.status(500).json({ detail: e.message });

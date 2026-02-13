@@ -5,45 +5,55 @@ const Photo = require('../models/Photo');
 const upload = require('../services/uploadService');
 const { isAdmin } = require('../middlewares/authMiddleware');
 
-// General middleware for any logged in user
-const verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-    const token = authHeader.split(' ')[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (e) {
-        res.status(401).json({ detail: 'Invalid or expired token' });
-    }
-};
-
 // GET / - List all photos
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const photos = await Photo.find().sort({ uploaded_at: -1 });
-        res.json(photos);
+        res.json({ success: true, data: photos });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
-// POST / - Upload Photo (Admin Only)
-router.post('/', isAdmin, upload.single('photo'), async (req, res) => {
+// POST / - Upload Photos (Admin Only) - Supports multiple files
+router.post('/', isAdmin, upload.array('photos', 10), async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ detail: 'No file uploaded' });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, message: 'No files uploaded' });
+        }
 
-        const newPhoto = new Photo({
-            url: req.file.path,
-            caption: req.body.caption || ''
+        // Parse captions from request body (sent as JSON string or individual fields)
+        let captions = [];
+        if (req.body.captions) {
+            try {
+                captions = JSON.parse(req.body.captions);
+            } catch (e) {
+                captions = Array.isArray(req.body.captions) ? req.body.captions : [req.body.captions];
+            }
+        }
+
+        // Create photo documents for each uploaded file
+        const uploadedPhotos = [];
+        for (let i = 0; i < req.files.length; i++) {
+            const file = req.files[i];
+            const caption = captions[i] || '';
+
+            const newPhoto = new Photo({
+                url: file.path,
+                caption: caption
+            });
+
+            await newPhoto.save();
+            uploadedPhotos.push(newPhoto);
+        }
+
+        res.json({
+            success: true,
+            message: `${uploadedPhotos.length} photo(s) uploaded successfully`,
+            data: uploadedPhotos
         });
-
-        await newPhoto.save();
-        res.json({ success: true, message: 'Photo uploaded successfully', photo: newPhoto });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, message: 'Upload failed', detail: e.message });
     }
 });
 
@@ -51,11 +61,12 @@ router.post('/', isAdmin, upload.single('photo'), async (req, res) => {
 router.delete('/:id', isAdmin, async (req, res) => {
     try {
         const photo = await Photo.findByIdAndDelete(req.params.id);
-        if (!photo) return res.status(404).json({ detail: 'Photo not found' });
+        if (!photo) return res.status(404).json({ success: false, detail: 'Photo not found' });
         res.json({ success: true, message: 'Photo deleted successfully' });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 module.exports = router;
+

@@ -5,42 +5,45 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { isAdmin } = require('../middlewares/authMiddleware');
 
-// Create Request (Member)
-router.post('/request', async (req, res) => {
+// General middleware for any logged in user
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
+
+    const token = authHeader.split(' ')[1];
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (e) {
+        res.status(401).json({ detail: 'Invalid or expired token' });
+    }
+};
 
+// Create Request (Member)
+router.post('/request', verifyToken, async (req, res) => {
+    try {
         const { request_type, amount_requested, description } = req.body;
         const request = await Welfare.create({
-            user_id: decoded.id,
+            user_id: req.user.id,
             request_type,
             amount_requested,
             description
         });
 
-        res.json({ message: "Request submitted successfully", request });
+        res.json({ success: true, message: "Request submitted successfully", data: request });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // My Requests (Member)
-router.get('/my-requests', async (req, res) => {
+router.get('/my-requests', verifyToken, async (req, res) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader) return res.status(401).json({ detail: 'Missing token' });
-
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        const requests = await Welfare.find({ user_id: decoded.id }).sort({ created_at: -1 });
-        res.json(requests);
+        const requests = await Welfare.find({ user_id: req.user.id }).sort({ created_at: -1 });
+        res.json({ success: true, data: requests });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -61,9 +64,9 @@ router.get('/all', isAdmin, async (req, res) => {
             created_at: r.created_at
         }));
 
-        res.json(result);
+        res.json({ success: true, data: result });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -85,9 +88,9 @@ router.patch('/:id/status', isAdmin, async (req, res) => {
 
         if (!request) return res.status(404).json({ detail: 'Request not found' });
 
-        res.json({ message: `Status updated to ${status}`, request });
+        res.json({ success: true, message: `Status updated to ${status}`, data: request });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -103,9 +106,9 @@ router.put('/:id', isAdmin, async (req, res) => {
 
         if (!request) return res.status(404).json({ detail: 'Request not found' });
 
-        res.json({ message: "Request updated successfully", request });
+        res.json({ success: true, message: "Request updated successfully", data: request });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -115,10 +118,11 @@ router.delete('/:id', isAdmin, async (req, res) => {
         const request = await Welfare.findByIdAndDelete(req.params.id);
         if (!request) return res.status(404).json({ detail: 'Request not found' });
 
-        res.json({ message: "Request deleted successfully" });
+        res.json({ success: true, message: "Request deleted successfully" });
     } catch (e) {
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 module.exports = router;
+

@@ -1,0 +1,123 @@
+<!-- Sidebar Overlay (Mobile) -->
+<div id="sidebarOverlay" onclick="toggleSidebar()"
+    class="fixed inset-0 bg-black/50 z-[55] hidden md:hidden transition-opacity"></div>
+
+<!-- Sidebar -->
+<aside id="adminSidebar"
+    class="fixed md:static inset-y-0 left-0 w-64 glass bg-primary/95 text-white flex flex-col border-r border-white/10 z-[60] transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+    <div class="p-8">
+        <h2 class="text-xl font-black tracking-tight">ADMIN PANEL</h2>
+        <div class="h-1 w-12 bg-white/20 mt-2 rounded-full mb-4"></div>
+
+        <!-- Admin Details in Sidebar -->
+        <div class="bg-white/10 rounded-xl p-3 border border-white/10 mb-2">
+            <p class="text-[10px] uppercase tracking-widest text-white/60 font-bold" id="sidebarAdminRole">
+                Loading...</p>
+            <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
+        </div>
+    </div>
+    <nav class="flex-1 px-4 space-y-2">
+        <a href="/admin/dashboard" id="nav-members"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>👥</span> Members
+        </a>
+        <a href="/admin/payments" id="nav-payments"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>💰</span> Payments
+        </a>
+        <a href="/admin/expenses" id="nav-expenses"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>📉</span> Expenses
+        </a>
+        <a href="/admin/welfare" id="nav-welfare"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>🏥</span> Welfare
+        </a>
+        <a href="/admin/messages" id="nav-messages"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>💬</span> Messages
+        </a>
+        <a href="/contributions" id="nav-contributions"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>💳</span> My Contribution
+        </a>
+        <hr class="border-white/10 my-2 mx-4">
+        <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold px-6 mb-2">Modules</p>
+        <a href="/admin/events/create" id="nav-events"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>📅</span> Events
+        </a>
+        <a href="/admin/gallery/upload" id="nav-gallery"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>🖼️</span> Gallery
+        </a>
+        <a href="/admin/voting/setup" id="nav-voting"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>🗳️</span> Voting
+        </a>
+    </nav>
+    <div class="p-4">
+        <button onclick="handleLogout()"
+            class="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold transition">
+            <span>🚪</span> Logout
+        </button>
+    </div>
+</aside>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        if (sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+    }
+
+    async function handleLogout() { localStorage.removeItem('access_token'); window.location.href = '/login'; }
+
+    async function fetchAdminDetails() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const res = await fetch('/api/v1/auth/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const admin = await res.json();
+                document.getElementById('sidebarAdminName').textContent = admin.full_name;
+                document.getElementById('sidebarAdminRole').textContent = admin.role.toUpperCase();
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    // Highlight active nav item based on current path
+    function highlightNav() {
+        const path = window.location.pathname;
+        const navMap = {
+            '/admin/dashboard': 'nav-members',
+            '/admin/payments': 'nav-payments',
+            '/admin/expenses': 'nav-expenses',
+            '/admin/welfare': 'nav-welfare',
+            '/admin/messages': 'nav-messages',
+            '/contributions': 'nav-contributions',
+            '/admin/events/create': 'nav-events',
+            '/admin/gallery/upload': 'nav-gallery',
+            '/admin/voting/setup': 'nav-voting'
+        };
+        const activeId = navMap[path];
+        if (activeId) {
+            const el = document.getElementById(activeId);
+            if (el) {
+                el.classList.remove('hover:bg-white/5', 'text-white/70');
+                el.classList.add('bg-white/10', 'text-white');
+            }
+        }
+    }
+
+    fetchAdminDetails();
+    highlightNav();
+</script>

@@ -331,13 +331,15 @@
                 }
                 const cRes = await fetch('/api/v1/contributions/my-stats', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (cRes.ok) {
-                    const stats = await cRes.json();
+                    const res = await cRes.json();
+                    const stats = res.data || {};
                     document.getElementById('totalContributed').textContent = `₦${(stats.totalPaid || 0).toLocaleString()}`;
                 }
 
                 const sRes = await fetch('/api/v1/contributions/status-summary', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (sRes.ok) {
-                    const summary = await sRes.json();
+                    const result = await sRes.json();
+                    const summary = result.data || [];
 
                     // Check for unpaid and due contributions
                     const dueContributions = summary.filter(s => s.status === 'Due');

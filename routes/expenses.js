@@ -4,31 +4,24 @@ const Expense = require('../models/Expense');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { isAdmin } = require('../middlewares/authMiddleware');
-const PDFDocument = require('pdfkit');
-
-// --- Middleware Removed (moved to authMiddleware.js) ---
 
 // GET all expenses
 router.get('/', isAdmin, async (req, res) => {
     try {
-        console.log('GET /api/v1/expenses requested by:', req.user.sub);
         const expenses = await Expense.find().sort({ date: -1 });
-        console.log(`Found ${expenses.length} expenses`);
-        res.json(expenses);
+        res.json({ success: true, data: expenses });
     } catch (e) {
-        console.error('GET /api/v1/expenses Error:', e.message);
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 // POST a new expense
 router.post('/', isAdmin, async (req, res) => {
     try {
-        console.log('POST /api/v1/expenses payload:', req.body);
         const { reason, amount, date, category } = req.body;
 
         if (!reason || !amount) {
-            return res.status(400).json({ detail: 'Reason and Amount are required' });
+            return res.status(400).json({ success: false, detail: 'Reason and Amount are required' });
         }
 
         const newExpense = new Expense({
@@ -40,11 +33,9 @@ router.post('/', isAdmin, async (req, res) => {
         });
 
         await newExpense.save();
-        console.log('Expense saved successfully:', newExpense._id);
-        res.json({ success: true, message: 'Expense recorded successfully', expense: newExpense });
+        res.json({ success: true, message: 'Expense recorded successfully', data: newExpense });
     } catch (e) {
-        console.error('POST /api/v1/expenses Error:', e.message);
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -140,8 +131,7 @@ router.get('/export', isAdmin, async (req, res) => {
         doc.end();
 
     } catch (e) {
-        console.error('PDF Export Error:', e);
-        res.status(500).json({ detail: 'Failed to generate PDF: ' + e.message });
+        res.status(500).json({ success: false, detail: 'Failed to generate PDF: ' + e.message });
     }
 });
 
@@ -161,14 +151,12 @@ router.put('/:id', isAdmin, async (req, res) => {
         );
 
         if (!updatedExpense) {
-            return res.status(404).json({ detail: 'Expense not found' });
+            return res.status(404).json({ success: false, detail: 'Expense not found' });
         }
 
-        console.log('Expense updated successfully:', updatedExpense._id);
-        res.json({ success: true, message: 'Expense updated successfully', expense: updatedExpense });
+        res.json({ success: true, message: 'Expense updated successfully', data: updatedExpense });
     } catch (e) {
-        console.error('PUT /api/v1/expenses/:id Error:', e.message);
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
@@ -177,14 +165,13 @@ router.delete('/:id', isAdmin, async (req, res) => {
     try {
         const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
         if (!deletedExpense) {
-            return res.status(404).json({ detail: 'Expense not found' });
+            return res.status(404).json({ success: false, detail: 'Expense not found' });
         }
-        console.log('Expense deleted successfully:', req.params.id);
         res.json({ success: true, message: 'Expense deleted successfully' });
     } catch (e) {
-        console.error('DELETE /api/v1/expenses/:id Error:', e.message);
-        res.status(500).json({ detail: e.message });
+        res.status(500).json({ success: false, detail: e.message });
     }
 });
 
 module.exports = router;
+

@@ -322,7 +322,8 @@
             try {
                 const res = await fetch('/api/v1/contributions/status-summary', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
-                    const data = await res.json();
+                    const result = await res.json();
+                    const data = result.data || [];
                     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
                     // Update Status Grid - now includes 'Due' status
@@ -382,7 +383,8 @@
             try {
                 const res = await fetch('/api/v1/contributions/my-history', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
-                    const data = await res.json();
+                    const result = await res.json();
+                    const data = result.data || [];
                     document.getElementById('historyTable').innerHTML = data.map(h => {
                         const displayMonths = h.months && h.months.length > 0 ? h.months.join(', ') : (h.month || 'N/A');
                         return `
@@ -447,7 +449,7 @@
                     fetchStatusSummary();
                 } else {
                     const err = await res.json();
-                    alert(err.detail || "Submission failed.");
+                    alert(err.message || err.detail || "Submission failed.");
                 }
             } catch (e) { console.error(e); } finally {
                 const btn = e.target.querySelector('button');
