@@ -1,4 +1,4 @@
-require('dotenv').config();
+wrequire('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
@@ -10,7 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static(path.join(process.cwd(), 'public')));
+// Serve static files - Vercel handles this via output configuration usually, but for express:
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health Check
 app.get('/health', (req, res) => res.status(200).send('OK'));
@@ -24,9 +25,9 @@ app.use((req, res, next) => {
 });
 
 // View Engine
-// View Engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(process.cwd(), 'views'));
+// Fix for Vercel: ensure views path is absolute and correct
+app.set('views', path.join(__dirname, 'views'));
 
 // Database Connection
 // Database Connection (Serverless Pattern)
@@ -35,6 +36,13 @@ let isConnected = false;
 const connectDB = async () => {
     if (isConnected) {
         console.log('=> Using existing database connection');
+        return;
+    }
+
+    // Check actual mongoose state (1 = connected, 2 = connecting)
+    if (mongoose.connection.readyState >= 1) {
+        isConnected = true;
+        console.log('=> Mongoose already connected/connecting');
         return;
     }
 
@@ -47,7 +55,7 @@ const connectDB = async () => {
 
     console.log('=> Creating new database connection...');
     try {
-        const db = await mongoose.connect(dbUrl, {
+        const db = await mongoose.connect(dbUrl.trim(), {
             serverSelectionTimeoutMS: 5000,
         });
         isConnected = db.connections[0].readyState;
