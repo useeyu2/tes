@@ -1,0 +1,5 @@
+app/
+*.py
+*.bat
+server_log.txt
+.env
