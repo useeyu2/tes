@@ -31,49 +31,58 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Database Connection
 // Database Connection (Serverless Pattern)
-let isConnected = false;
+// Database Connection (Cached Source for Serverless)
+let cached = global.mongoose;
+
+if (!cached) {
+    cached = global.mongoose = { conn: null, promise: null };
+}
 
 const connectDB = async () => {
-    if (isConnected) {
+    if (cached.conn) {
         console.log('=> Using existing database connection');
-        return;
+        return cached.conn;
     }
 
-    // Check actual mongoose state (1 = connected, 2 = connecting)
-    if (mongoose.connection.readyState >= 1) {
-        isConnected = true;
-        console.log('=> Mongoose already connected/connecting');
-        return;
-    }
-
-    const dbUrl = process.env.MONGODB_URL || process.env.MONGODB_Url;
-
-    if (!dbUrl) {
-        console.error('❌ MONGODB_URL (or MONGODB_Url) is missing!');
-        return;
-    }
-
-    console.log('=> Creating new database connection...');
-    try {
-        const db = await mongoose.connect(dbUrl.trim(), {
+    if (!cached.promise) {
+        const opts = {
+            bufferCommands: false, // Disable buffering
             serverSelectionTimeoutMS: 5000,
+        };
+
+        const dbUrl = process.env.MONGODB_URL || process.env.MONGODB_Url;
+
+        if (!dbUrl) {
+            throw new Error('❌ MONGODB_URL is missing in environment variables');
+        }
+
+        console.log('=> Creating new database connection...');
+        cached.promise = mongoose.connect(dbUrl.trim(), opts).then((mongoose) => {
+            console.log('✅ New MongoDB connection established');
+            return mongoose;
         });
-        isConnected = db.connections[0].readyState;
-        console.log('✅ Connected to MongoDB');
-    } catch (err) {
-        console.error('❌ MongoDB connection error:', err.message);
     }
+
+    try {
+        cached.conn = await cached.promise;
+    } catch (e) {
+        cached.promise = null;
+        console.error('❌ MongoDB connection error:', e);
+        throw e;
+    }
+
+    return cached.conn;
 };
 
-// Connect immediately
-connectDB();
-
-// Ensure connection is established before processing requests (Middleware)
+// Ensure connection for every request (Middleware)
 app.use(async (req, res, next) => {
-    if (!isConnected) {
+    try {
         await connectDB();
+        next();
+    } catch (error) {
+        console.error('Database connection failed:', error);
+        res.status(500).json({ error: 'Database connection failed', details: error.message });
     }
-    next();
 });
 
 // Debug Root Route
