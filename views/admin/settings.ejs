@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Settings - Alumni System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#1e3a8a', secondary: '#1e40af' } } } }
+    </script>
+    <style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <%- include('../partials/sidebar') %>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+                <%- include('../partials/header') %>
+
+                    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6 lg:p-8">
+                        <div class="max-w-4xl mx-auto">
+                            <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h1 class="text-3xl font-black text-gray-900 tracking-tight">System Settings</h1>
+                                    <p class="text-gray-500 font-medium">Manage global configuration.</p>
+                                </div>
+                            </div>
+
+                            <!-- Settings Form -->
+                            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 p-8">
+                                <form id="settingsForm" class="space-y-8">
+
+                                    <!-- Financial Settings -->
+                                    <div>
+                                        <h3 class="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
+                                            <span class="bg-blue-100 text-blue-600 p-2 rounded-lg">💰</span> Financial
+                                            Configuration
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="space-y-2">
+                                                <label
+                                                    class="text-xs font-bold uppercase tracking-widest text-gray-500">Monthly
+                                                    Contribution (₦)</label>
+                                                <input type="number" id="contribution_amount" name="contribution_amount"
+                                                    required
+                                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <hr class="border-gray-100">
+
+                                    <!-- Bank Account Details -->
+                                    <div>
+                                        <h3 class="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
+                                            <span class="bg-green-100 text-green-600 p-2 rounded-lg">🏦</span> Bank
+                                            Account Details
+                                        </h3>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div class="space-y-2">
+                                                <label
+                                                    class="text-xs font-bold uppercase tracking-widest text-gray-500">Bank
+                                                    Name</label>
+                                                <input type="text" id="bank_name" name="bank_name" required
+                                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition">
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label
+                                                    class="text-xs font-bold uppercase tracking-widest text-gray-500">Account
+                                                    Number</label>
+                                                <input type="text" id="account_number" name="account_number" required
+                                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition">
+                                            </div>
+                                            <div class="space-y-2 md:col-span-2">
+                                                <label
+                                                    class="text-xs font-bold uppercase tracking-widest text-gray-500">Account
+                                                    Name</label>
+                                                <input type="text" id="account_name" name="account_name" required
+                                                    class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-900 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4">
+                                        <button type="submit"
+                                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-95 flex justify-center items-center gap-2">
+                                            <span>💾 SAVE CHANGES</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div>
+                    </main>
+            </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('settingsForm');
+
+        async function fetchSettings() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/v1/super-admin/settings', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const result = await res.json();
+                if (result.success) {
+                    const s = result.data;
+                    document.getElementById('contribution_amount').value = s.contribution_amount;
+                    document.getElementById('bank_name').value = s.bank_name;
+                    document.getElementById('account_number').value = s.account_number;
+                    document.getElementById('account_name').value = s.account_name;
+                } else {
+                    alert('Failed to load settings: ' + result.message);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('access_token');
+            const data = {
+                contribution_amount: document.getElementById('contribution_amount').value,
+                bank_name: document.getElementById('bank_name').value,
+                account_number: document.getElementById('account_number').value,
+                account_name: document.getElementById('account_name').value
+            };
+
+            try {
+                const res = await fetch('/api/v1/super-admin/settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('Settings updated successfully! ✅');
+                } else {
+                    alert('Update failed: ' + result.message);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('An error occurred.');
+            }
+        });
+
+        fetchSettings();
+    </script>
+</body>
+
+</html>

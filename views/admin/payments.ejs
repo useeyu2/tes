@@ -262,8 +262,10 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(tx.created_at).toLocaleDateString()}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                                ${tx.proof_url ? `<button onclick="viewProof('${tx.proof_url}')" class="text-blue-600 font-bold hover:underline">📄 View Proof</button>` : '<span class="text-gray-300 italic">No Proof</span>'}
                                 <button onclick="revertPayment('${tx._id}')" class="text-indigo-600 hover:text-indigo-900 font-bold">Revert to Pending</button>
+                                ${tx.status === 'Rejected' ? `<button onclick="deleteTransaction('${tx._id}')" class="text-red-600 hover:text-red-900 font-bold">Delete</button>` : ''}
                             </td>
                         </tr>
                     `).join('');
@@ -290,8 +292,29 @@
                 } catch (e) { console.error(e); }
             }
 
+            async function deleteTransaction(id) {
+                if (!confirm("⚠️ WARNING: This will PERMANENTLY DELETE this rejected transaction.\n\nThis action CANNOT be undone!\n\nAre you sure?")) return;
+                const token = localStorage.getItem('access_token');
+                try {
+                    const res = await fetch(`/api/v1/admin/transactions/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        alert(result.message || "Transaction deleted successfully.");
+                        loadRecentPayments();
+                    } else {
+                        alert(result.detail || result.message || "Delete failed.");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('An error occurred while deleting the transaction.');
+                }
+            }
+
             async function triggerMonthly() {
-                if (!confirm("Generate monthly dues for all active members (₦1,500 each)?")) return;
+                if (!confirm("Generate monthly dues for all active members (₦1,000 each)?")) return;
                 const token = localStorage.getItem('access_token');
                 try {
                     const res = await fetch('/api/v1/contributions/generate-monthly', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });

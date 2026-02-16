@@ -341,8 +341,23 @@
                     const result = await sRes.json();
                     const summary = result.data || [];
 
-                    // Check for unpaid and due contributions
-                    const dueContributions = summary.filter(s => s.status === 'Due');
+                    // Check for unpaid and due contributions (up to current month for dashboard alerts)
+                    const now = new Date();
+                    const currentYear = now.getFullYear();
+                    const currentMonthIdx = now.getMonth();
+
+                    const dueContributions = summary.filter(s => {
+                        const [y, m] = s.month.split('-').map(Number);
+                        const monthIdx = m - 1;
+
+                        // It's due if it's explicitly marked 'Due'
+                        if (s.status === 'Due') return true;
+
+                        // It's also due if it's 'Unpaid' and in the past or current month
+                        const isPastOrCurrent = (y < currentYear) || (y === currentYear && monthIdx <= currentMonthIdx);
+                        return s.status === 'Unpaid' && isPastOrCurrent;
+                    });
+
                     const unpaidCount = summary.filter(s => s.status === 'Unpaid').length;
 
                     if (unpaidCount > 0) {
@@ -351,7 +366,7 @@
 
                     // Display notifications for due contributions
                     if (dueContributions.length > 0) {
-                        const totalDue = dueContributions.reduce((sum, c) => sum + (c.amount || 1500), 0);
+                        const totalDue = dueContributions.length * 1000; // Fixed: ₦1,000 per month
                         const notificationsSection = document.getElementById('notificationsSection');
                         const duesNotification = document.getElementById('duesNotification');
                         const remindersNotification = document.getElementById('remindersNotification');
@@ -390,14 +405,17 @@
                     }
                 }
 
+            } catch (e) { console.error('Stats Error (Contributions):', e); }
+
+            try {
                 const aRes = await fetch('/api/v1/reports/summary/annual', { headers: { 'Authorization': `Bearer ${token}` } });
                 if (aRes.ok) {
                     const annual = await aRes.json();
-                    document.getElementById('annualRaised').textContent = `₦${(annual.total || 0).toLocaleString()}`;
-                    document.getElementById('annualExpenses').textContent = `₦${(annual.expenses || 0).toLocaleString()}`;
-                    document.getElementById('annualBalance').textContent = `₦${(annual.balance || 0).toLocaleString()}`;
+                    document.getElementById('annualRaised').textContent = `₦${(annual.data?.total || 0).toLocaleString()}`;
+                    document.getElementById('annualExpenses').textContent = `₦${(annual.data?.expenses || 0).toLocaleString()}`;
+                    document.getElementById('annualBalance').textContent = `₦${(annual.data?.balance || 0).toLocaleString()}`;
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error('Stats Error (Annual):', e); }
         }
 
         async function fetchRecentActivity() {

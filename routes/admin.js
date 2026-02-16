@@ -87,7 +87,9 @@ router.get('/transactions', async (req, res) => {
             reference_number: tx.reference_number,
             created_at: tx.created_at,
             contribution_id: tx.contribution_id,
-            status: tx.status
+            status: tx.status,
+            proof_url: tx.proof_url ? tx.proof_url.replace(/\\/g, '/').replace('public/', '/') : null,
+            months: tx.months
         }));
 
         res.json({ success: true, data: result });
@@ -226,6 +228,33 @@ router.patch('/members/:id/status', async (req, res) => {
     }
 });
 
+// Delete Member Permanently
+router.delete('/members/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the user first to check if they exist
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ detail: 'User not found' });
+        }
+
+        // Delete the user
+        await User.findByIdAndDelete(id);
+
+        res.json({
+            success: true,
+            message: `User ${user.full_name} has been permanently deleted`,
+            data: {
+                _id: user._id,
+                full_name: user.full_name
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
+    }
+});
+
 const reminderService = require('../services/reminderService');
 
 // Send Reminders to all 'Due' members
@@ -242,6 +271,42 @@ const Message = require('../models/Message');
 const Welfare = require('../models/Welfare');
 const Event = require('../models/Event');
 const Expense = require('../models/Expense');
+
+// Delete Transaction (Rejected only)
+router.delete('/transactions/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the transaction first
+        const transaction = await Transaction.findById(id);
+        if (!transaction) {
+            return res.status(404).json({ detail: 'Transaction not found' });
+        }
+
+        // Only allow deletion of rejected transactions
+        if (transaction.status !== 'Rejected') {
+            return res.status(400).json({
+                detail: 'Only rejected transactions can be deleted',
+                currentStatus: transaction.status
+            });
+        }
+
+        // Delete the transaction
+        await Transaction.findByIdAndDelete(id);
+
+        res.json({
+            success: true,
+            message: 'Rejected transaction deleted successfully',
+            data: {
+                _id: transaction._id,
+                amount: transaction.amount,
+                status: transaction.status
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message, detail: e.message });
+    }
+});
 
 // Dashboard Overview Stats
 router.get('/overview', async (req, res) => {

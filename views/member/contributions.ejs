@@ -124,141 +124,152 @@
                     <div class="p-8 space-y-8">
                         <!-- Step 1 & 2 -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-4">
+                            <div class="flex justify-between items-center mb-4">
                                 <h3 class="font-black text-gray-800 uppercase tracking-widest text-sm">Step 1: Choose
                                     Months</h3>
-                                <div class="bg-gray-50 border-2 border-gray-100 rounded-[2rem] p-4 max-h-48 overflow-y-auto space-y-2 custom-scrollbar"
-                                    id="monthsList">
-                                    <% const months=["January", "February" , "March" , "April" , "May" , "June" , "July"
-                                        , "August" , "September" , "October" , "November" , "December" ]; const now=new
-                                        Date(); const currentYear=now.getFullYear(); for(let i=0; i < 12; i++) { const
-                                        val=`${currentYear}-${String(i + 1).padStart(2, '0' )}`; %>
-                                        <label
-                                            class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition group">
-                                            <input type="checkbox" name="months" value="<%= val %>"
-                                                class="w-5 h-5 rounded-lg border-2 border-gray-200 text-primary focus:ring-primary cursor-pointer">
-                                            <span class="font-bold text-gray-700 group-hover:text-primary transition">
-                                                <%= months[i] %>
-                                                    <%= currentYear %>
-                                            </span>
-                                        </label>
+                                <select id="yearSelect"
+                                    class="bg-white border-2 border-gray-100 rounded-xl px-4 py-1.5 text-xs font-black text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                                    <% for(let y=2026; y <=2035; y++) { %>
+                                        <option value="<%= y %>" <%=y===new Date().getFullYear() ? 'selected' : '' %>>
+                                            <%= y %>
+                                        </option>
                                         <% } %>
-                                </div>
-                                <div class="flex justify-between items-center px-2 mt-2">
-                                    <p class="text-xs text-gray-400 font-medium">₦1,500 per month</p>
-                                    <p class="text-xs font-black text-primary uppercase italic" id="totalDisplay">Total:
-                                        ₦0</p>
-                                </div>
+                                </select>
                             </div>
-
-                            <div class="space-y-4">
-                                <h3 class="font-black text-gray-800 uppercase tracking-widest text-sm">Step 2: Bank
-                                    Transfer</h3>
-                                <div
-                                    class="bg-blue-50/50 border border-blue-100 p-6 rounded-[2rem] relative group overflow-hidden">
-                                    <div
-                                        class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
-                                        🏦</div>
-                                    <p class="text-[10px] text-blue-400 font-black uppercase mb-2">Account Details</p>
-                                    <p class="text-sm font-bold text-blue-800">GT Bank</p>
-                                    <div class="flex items-center justify-between mt-1">
-                                        <p class="text-lg font-black text-primary" id="accNumber">1029215993</p>
-                                        <button onclick="copyAcc(this)"
-                                            class="text-[10px] bg-primary text-white px-4 py-1.5 rounded-full font-black hover:scale-105 active:scale-95 transition min-w-[60px]">COPY</button>
-                                    </div>
-                                    <p class="text-xs text-blue-600 mt-2">Usman Umar</p>
-                                </div>
+                            <div class="bg-gray-50 border-2 border-gray-100 rounded-[2rem] p-4 max-h-48 overflow-y-auto space-y-2 custom-scrollbar"
+                                id="monthsList">
+                                <% const months=["January", "February" , "March" , "April" , "May" , "June" , "July"
+                                    , "August" , "September" , "October" , "November" , "December" ]; for(let i=0; i <
+                                    12; i++) { const monthVal=String(i + 1).padStart(2, '0' ); %>
+                                    <label
+                                        class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-blue-50 transition group month-item"
+                                        data-month-name="<%= months[i] %>" data-month-idx="<%= monthVal %>">
+                                        <input type="checkbox" name="months" value=""
+                                            class="w-5 h-5 rounded-lg border-2 border-gray-200 text-primary focus:ring-primary cursor-pointer">
+                                        <span
+                                            class="font-bold text-gray-700 group-hover:text-primary transition month-label">
+                                            <%= months[i] %> <span class="year-label">
+                                                    <%= currentYear %>
+                                                </span>
+                                        </span>
+                                    </label>
+                                    <% } %>
+                            </div>
+                            <div class="flex justify-between items-center px-2 mt-2">
+                                <p class="text-xs text-gray-400 font-medium">₦<span id="amountPerMonth">1,000</span> per
+                                    month</p>
+                                <p class="text-xs font-black text-primary uppercase italic" id="totalDisplay">Total:
+                                    ₦0</p>
                             </div>
                         </div>
 
-                        <!-- Step 3 -->
-                        <div class="space-y-4 pt-4 border-t border-gray-100">
-                            <h3 class="font-black text-gray-800 uppercase tracking-widest text-sm">Step 3: Upload Proof
-                            </h3>
-                            <form id="paymentForm" class="space-y-6">
-                                <div class="relative group">
-                                    <input type="file" id="proofUpload"
-                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                        accept="image/*,.pdf">
-                                    <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-12 text-center group-hover:border-primary/30 transition bg-gray-50/50"
-                                        id="dropZone">
-                                        <div class="text-4xl mb-4 group-hover:scale-110 transition inline-block">📄
-                                        </div>
-                                        <p class="text-gray-500 font-bold" id="fileName">Drop your receipt here or click
-                                            to browse</p>
-                                        <p class="text-[10px] text-gray-400 font-black uppercase mt-2 tracking-widest">
-                                            JPG, PNG or PDF (Max 5MB)</p>
-                                    </div>
+                        <div class="space-y-4">
+                            <h3 class="font-black text-gray-800 uppercase tracking-widest text-sm">Step 2: Bank
+                                Transfer</h3>
+                            <div
+                                class="bg-blue-50/50 border border-blue-100 p-6 rounded-[2rem] relative group overflow-hidden">
+                                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                                    🏦</div>
+                                <p class="text-[10px] text-blue-400 font-black uppercase mb-2">Account Details</p>
+                                <p class="text-sm font-bold text-blue-800" id="bankName">Loading...</p>
+                                <div class="flex items-center justify-between mt-1">
+                                    <p class="text-lg font-black text-primary" id="accNumber">Loading...</p>
+                                    <button onclick="copyAcc(this)"
+                                        class="text-[10px] bg-primary text-white px-4 py-1.5 rounded-full font-black hover:scale-105 active:scale-95 transition min-w-[60px]">COPY</button>
                                 </div>
-                                <button type="submit"
-                                    class="w-full bg-primary text-white py-5 rounded-[2rem] font-black hover:bg-blue-800 shadow-2xl shadow-blue-500/20 transform active:scale-95 transition text-lg tracking-tight">
-                                    🚀 SUBMIT FOR VERIFICATION
-                                </button>
-                            </form>
+                                <p class="text-xs text-blue-600 mt-2" id="accName">Loading...</p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Contribution Status Grid -->
-                <div class="glass rounded-[2rem] shadow-xl overflow-hidden mb-8">
-                    <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-black text-gray-900 tracking-tight flex items-center gap-2">
-                            <span class="text-xl">📅</span>
-                            <%= currentYear %> PAYMENT STATUS
+                    <!-- Step 3 -->
+                    <div class="space-y-4 pt-4 border-t border-gray-100">
+                        <h3 class="font-black text-gray-800 uppercase tracking-widest text-sm">Step 3: Upload Proof
                         </h3>
-                        <div class="flex gap-4 text-[10px] font-black uppercase tracking-widest flex-wrap">
-                            <span class="flex items-center gap-1.5"><span
-                                    class="w-2 h-2 rounded-full bg-green-500"></span> Paid</span>
-                            <span class="flex items-center gap-1.5"><span
-                                    class="w-2 h-2 rounded-full bg-orange-400"></span> Pending</span>
-                            <span class="flex items-center gap-1.5"><span
-                                    class="w-2 h-2 rounded-full bg-red-500"></span> Due</span>
-                            <span class="flex items-center gap-1.5"><span
-                                    class="w-2 h-2 rounded-full bg-gray-300"></span> Unpaid</span>
-                        </div>
-                    </div>
-                    <div class="p-8">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"
-                            id="statusGrid">
-                            <!-- Status cards will be injected here -->
-                            <% for(let i=0; i < 12; i++) { %>
-                                <div
-                                    class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center animate-pulse">
-                                    <div class="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-2"></div>
-                                    <div class="h-2 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                        <form id="paymentForm" class="space-y-6">
+                            <div class="relative group">
+                                <input type="file" id="proofUpload"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                    accept="image/*,.pdf">
+                                <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-12 text-center group-hover:border-primary/30 transition bg-gray-50/50"
+                                    id="dropZone">
+                                    <div class="text-4xl mb-4 group-hover:scale-110 transition inline-block">📄
+                                    </div>
+                                    <p class="text-gray-500 font-bold" id="fileName">Drop your receipt here or click
+                                        to browse</p>
+                                    <p class="text-[10px] text-gray-400 font-black uppercase mt-2 tracking-widest">
+                                        JPG, PNG or PDF (Max 5MB)</p>
                                 </div>
-                                <% } %>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- History -->
-                <div class="glass rounded-[2rem] shadow-xl overflow-hidden">
-                    <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
-                        <h3 class="font-black text-gray-900 tracking-tight">PAYMENT HISTORY</h3>
-                        <span class="text-xs text-gray-400 font-bold uppercase">Status Check</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50/50 text-[10px] uppercase tracking-widest font-black text-gray-400">
-                                <tr>
-                                    <th class="px-8 py-4">Month</th>
-                                    <th class="px-8 py-4">Amount</th>
-                                    <th class="px-8 py-4">Status</th>
-                                    <th class="px-8 py-4">Verification</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTable" class="divide-y divide-gray-50">
-                                <tr>
-                                    <td colspan="4" class="px-8 py-12 text-center text-gray-400 font-bold italic">
-                                        Loading history...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            </div>
+                            <button type="submit"
+                                class="w-full bg-primary text-white py-5 rounded-[2rem] font-black hover:bg-blue-800 shadow-2xl shadow-blue-500/20 transform active:scale-95 transition text-lg tracking-tight">
+                                🚀 SUBMIT FOR VERIFICATION
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
-        </main>
+
+            <!-- Contribution Status Grid -->
+            <div class="glass rounded-[2rem] shadow-xl overflow-hidden mb-8">
+                <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-black text-gray-900 tracking-tight flex items-center gap-2">
+                        <span class="text-xl">📅</span>
+                        <span id="displayYear">
+                            <%= currentYear %>
+                        </span> PAYMENT STATUS
+                    </h3>
+                    <div class="flex gap-4 text-[10px] font-black uppercase tracking-widest flex-wrap">
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span>
+                            Paid</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-400"></span>
+                            Pending</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            Due</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-gray-300"></span>
+                            Unpaid</span>
+                    </div>
+                </div>
+                <div class="p-8">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" id="statusGrid">
+                        <!-- Status cards will be injected here -->
+                        <% for(let i=0; i < 12; i++) { %>
+                            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 text-center animate-pulse">
+                                <div class="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-2"></div>
+                                <div class="h-2 bg-gray-200 rounded w-3/4 mx-auto"></div>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="glass rounded-[2rem] shadow-xl overflow-hidden">
+                <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-black text-gray-900 tracking-tight">PAYMENT HISTORY</h3>
+                    <span class="text-xs text-gray-400 font-bold uppercase">Status Check</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50/50 text-[10px] uppercase tracking-widest font-black text-gray-400">
+                            <tr>
+                                <th class="px-8 py-4">Month</th>
+                                <th class="px-8 py-4">Amount</th>
+                                <th class="px-8 py-4">Status</th>
+                                <th class="px-8 py-4">Verification</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTable" class="divide-y divide-gray-50">
+                            <tr>
+                                <td colspan="4" class="px-8 py-12 text-center text-gray-400 font-bold italic">
+                                    Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </div>
+    </main>
     </div>
 
     <script>
@@ -282,6 +293,54 @@
             }, 300);
         }
 
+        const yearSelect = document.getElementById('yearSelect');
+        const displayYear = document.getElementById('displayYear');
+        const monthItems = document.querySelectorAll('.month-item');
+        let contributionAmount = 1000; // Default fallback
+
+        async function fetchSettings() {
+            try {
+                const res = await fetch('/api/v1/contributions/settings');
+                const result = await res.json();
+                if (result.success) {
+                    const s = result.data;
+                    contributionAmount = s.contribution_amount || 1000;
+                    document.getElementById('amountPerMonth').textContent = contributionAmount.toLocaleString();
+                    document.getElementById('bankName').textContent = s.bank_name;
+                    document.getElementById('accNumber').textContent = s.account_number;
+                    document.getElementById('accName').textContent = s.account_name;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function updateYearUI(year) {
+            displayYear.textContent = year;
+            monthItems.forEach(item => {
+                const monthIdx = item.dataset.monthIdx;
+                const input = item.querySelector('input');
+                const yearSpan = item.querySelector('.year-label');
+
+                input.value = `${year}-${monthIdx}`;
+                yearSpan.textContent = year;
+
+                // Reset states
+                input.disabled = false;
+                input.checked = false;
+                item.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-100', 'bg-red-50', 'border', 'border-red-200');
+                item.classList.add('bg-white', 'cursor-pointer', 'hover:bg-blue-50');
+
+                const span = item.querySelector('.month-label');
+                const badges = span.querySelectorAll('.status-badge');
+                badges.forEach(b => b.remove());
+            });
+            totalDisplay.textContent = "Total: ₦0";
+            fetchStatusSummary(year);
+        }
+
+        yearSelect.addEventListener('change', (e) => {
+            updateYearUI(e.target.value);
+        });
+
         function copyAcc(btn) {
             const acc = document.getElementById('accNumber').innerText;
             navigator.clipboard.writeText(acc);
@@ -298,14 +357,12 @@
 
         // Multi-Month Logic
         const monthsList = document.getElementById('monthsList');
-        const checkboxes = monthsList.querySelectorAll('input[type="checkbox"]');
-        const totalDisplay = document.getElementById('totalDisplay');
-
-        checkboxes.forEach(cb => {
-            cb.addEventListener('change', () => {
-                const selected = Array.from(checkboxes).filter(c => c.checked).length;
-                totalDisplay.textContent = `Total: ₦${(selected * 1500).toLocaleString()}`;
-            });
+        // We use querySelectorAll here because it needs to re-fetch if we change things, but better to use a stable listener
+        monthsList.addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+                const selected = Array.from(monthsList.querySelectorAll('input[type="checkbox"]')).filter(c => c.checked).length;
+                totalDisplay.textContent = `Total: ₦${(selected * contributionAmount).toLocaleString()}`;
+            }
         });
 
         // File Selection Feedback
@@ -317,10 +374,11 @@
             }
         });
 
-        async function fetchStatusSummary() {
+        async function fetchStatusSummary(year) {
+            const currentSelectedYear = year || yearSelect.value;
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/api/v1/contributions/status-summary', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch(`/api/v1/contributions/status-summary?year=${currentSelectedYear}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (res.ok) {
                     const result = await res.json();
                     const data = result.data || [];
@@ -359,18 +417,18 @@
                             cb.parentElement.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-100');
                             cb.parentElement.classList.remove('hover:bg-blue-50', 'cursor-pointer', 'bg-white');
 
-                            const span = cb.parentElement.querySelector('span');
-                            if (!span.innerText.includes(status)) {
-                                span.innerHTML += ` <span class="text-[10px] ml-2 px-2 py-0.5 rounded-full uppercase tracking-widest text-white ${status === 'Paid' ? 'bg-green-500' : 'bg-orange-400'}">${status}</span>`;
+                            const span = cb.parentElement.querySelector('.month-label');
+                            if (!span.innerHTML.includes(status)) {
+                                span.innerHTML += ` <span class="status-badge text-[10px] ml-2 px-2 py-0.5 rounded-full uppercase tracking-widest text-white ${status === 'Paid' ? 'bg-green-500' : 'bg-orange-400'}">${status}</span>`;
                             }
                         } else if (status === 'Due') {
                             // Due months are selectable and highlighted
                             cb.parentElement.classList.add('bg-red-50', 'border', 'border-red-200');
                             cb.parentElement.classList.remove('bg-white');
 
-                            const span = cb.parentElement.querySelector('span');
-                            if (!span.innerText.includes('DUE')) {
-                                span.innerHTML += ` <span class="text-[10px] ml-2 px-2 py-0.5 rounded-full uppercase tracking-widest text-white bg-red-500 animate-pulse">DUE</span>`;
+                            const span = cb.parentElement.querySelector('.month-label');
+                            if (!span.innerHTML.includes('DUE')) {
+                                span.innerHTML += ` <span class="status-badge text-[10px] ml-2 px-2 py-0.5 rounded-full uppercase tracking-widest text-white bg-red-500 animate-pulse">DUE</span>`;
                             }
                         }
                     });
@@ -410,13 +468,14 @@
             const token = localStorage.getItem('access_token');
             const file = document.getElementById('proofUpload').files[0];
 
-            const selectedMonths = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+            const allCheckboxes = document.querySelectorAll('#monthsList input[type="checkbox"]');
+            const selectedMonths = Array.from(allCheckboxes).filter(c => c.checked).map(c => c.value);
             if (selectedMonths.length === 0) return alert("Please select at least one month 📅");
             if (!file) return alert("Please upload proof of payment 📄");
 
             const formData = new FormData();
             formData.append('months', selectedMonths.join(','));
-            formData.append('amount', selectedMonths.length * 1500);
+            formData.append('amount', selectedMonths.length * contributionAmount);
             formData.append('proof', file);
 
             try {
@@ -441,12 +500,10 @@
                 if (res.ok) {
                     showSuccess();
                     e.target.reset();
-                    checkboxes.forEach(c => c.checked = false);
-                    totalDisplay.textContent = "Total: ₦0";
-                    document.getElementById('fileName').innerHTML = "Drop your receipt here or click to browse";
+                    fileName.innerHTML = "Drop your receipt here or click to browse";
                     document.getElementById('dropZone').classList.remove('border-primary/50', 'bg-blue-50/10');
                     fetchHistory();
-                    fetchStatusSummary();
+                    fetchStatusSummary(yearSelect.value);
                 } else {
                     const err = await res.json();
                     alert(err.message || err.detail || "Submission failed.");
@@ -458,8 +515,10 @@
             }
         });
 
+        const currentYear = new Date().getFullYear();
+        updateYearUI(currentYear < 2026 ? 2026 : currentYear);
+        fetchSettings();
         fetchHistory();
-        fetchStatusSummary();
     </script>
 </body>
 

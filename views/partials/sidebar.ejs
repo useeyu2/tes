@@ -16,7 +16,7 @@
             <p class="text-sm font-bold text-white" id="sidebarAdminName">Loading...</p>
         </div>
     </div>
-    <nav class="flex-1 px-4 space-y-2">
+    <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
         <a href="/admin/dashboard" id="nav-members"
             class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
             <span>👥</span> Members
@@ -55,6 +55,10 @@
             class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
             <span>🗳️</span> Voting
         </a>
+        <a href="/admin/settings" id="nav-settings" style="display: none;"
+            class="flex items-center gap-3 py-3 px-6 rounded-2xl hover:bg-white/5 text-white/70 font-bold transition">
+            <span>⚙️</span> Settings
+        </a>
     </nav>
     <div class="p-4">
         <button onclick="handleLogout()"
@@ -90,6 +94,11 @@
                 const admin = await res.json();
                 document.getElementById('sidebarAdminName').textContent = admin.full_name;
                 document.getElementById('sidebarAdminRole').textContent = admin.role.toUpperCase();
+
+                if (admin.role === 'SuperAdmin') {
+                    const settingsLink = document.getElementById('nav-settings');
+                    if (settingsLink) settingsLink.style.display = 'flex';
+                }
             }
         } catch (e) { console.error(e); }
     }

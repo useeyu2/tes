@@ -25,7 +25,7 @@ router.get('/summary/monthly', async (req, res) => {
             data: {
                 collected: verified[0]?.total || 0,
                 pending: pending[0]?.total || 0,
-                target: 1500 * (await User.countDocuments({ role: 'Member' }))
+                target: 1000 * (await User.countDocuments({ role: 'Member' }))
             }
         });
     } catch (e) {

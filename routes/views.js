@@ -10,7 +10,11 @@ router.get('/reset-password/:token?', (req, res) => res.render('auth/reset_passw
 
 // Member
 router.get('/dashboard', (req, res) => res.render('member/dashboard'));
-router.get('/contributions', (req, res) => res.render('member/contributions'));
+router.get('/contributions', (req, res) => {
+    res.render('member/contributions', {
+        currentYear: new Date().getFullYear()
+    });
+});
 router.get('/welfare', (req, res) => res.render('member/welfare'));
 router.get('/donations', (req, res) => res.render('member/donations'));
 router.get('/history', (req, res) => res.render('member/history'));
@@ -33,5 +37,6 @@ router.get('/admin/messages', (req, res) => res.render('admin/messages'));
 router.get('/admin/events/create', (req, res) => res.render('admin/create_event'));
 router.get('/admin/gallery/upload', (req, res) => res.render('admin/upload_photo'));
 router.get('/admin/voting/setup', (req, res) => res.render('admin/voting_setup'));
+router.get('/admin/settings', (req, res) => res.render('admin/settings'));
 
 module.exports = router;

@@ -4,6 +4,9 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const { sendSMS } = require('../utils/smsService');
 const bcrypt = require('bcryptjs');
+const { isAdmin } = require('../middlewares/authMiddleware');
+const { isSuperAdmin } = require('../middlewares/superAdminMiddleware');
+const SystemSettings = require('../models/SystemSettings');
 
 // 1. Direct Registration Route
 router.post('/register', async (req, res) => {
@@ -48,6 +51,41 @@ router.post('/register', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ detail: e.message });
+    }
+});
+
+// --- Settings Management (Super Admin Only) ---
+
+// Get Settings
+router.get('/settings', isAdmin, isSuperAdmin, async (req, res) => {
+    try {
+        const settings = await SystemSettings.getSettings();
+        res.json({ success: true, data: settings });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Update Settings
+router.put('/settings', isAdmin, isSuperAdmin, async (req, res) => {
+    try {
+        const { contribution_amount, bank_name, account_number, account_name, contact_email, contact_phone } = req.body;
+
+        const settings = await SystemSettings.getSettings();
+
+        if (contribution_amount) settings.contribution_amount = contribution_amount;
+        if (bank_name) settings.bank_name = bank_name;
+        if (account_number) settings.account_number = account_number;
+        if (account_name) settings.account_name = account_name;
+        if (contact_email !== undefined) settings.contact_email = contact_email;
+        if (contact_phone !== undefined) settings.contact_phone = contact_phone;
+
+        settings.updated_at = Date.now();
+        await settings.save();
+
+        res.json({ success: true, message: 'System settings updated successfully', data: settings });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
     }
 });
 

@@ -45,7 +45,7 @@ const sendResetEmail = async (to, tokenOrCode) => {
     }
 };
 
-const sendReminderEmail = async (to, name, month) => {
+const sendReminderEmail = async (to, name, month, amount = 1000) => {
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.subject = `Contribution Reminder - ${month}`;
     sendSmtpEmail.to = [{ email: to, name: name }];
@@ -56,7 +56,7 @@ const sendReminderEmail = async (to, name, month) => {
             <h2 style="color: #1e3a8a;">Contribution Reminder</h2>
             <p>Dear ${name},</p>
             <p>This is a friendly reminder regarding your alumni contribution for <strong>${month}</strong>.</p>
-            <p>The monthly contribution amount is <strong>₦1,500</strong>.</p>
+            <p>The monthly contribution amount is <strong>₦${amount.toLocaleString()}</strong>.</p>
             <div style="text-align: center; margin: 30px 0;">
                 <a href="https://${process.env.VERCEL_URL || 'localhost:8080'}/contributions" style="padding: 12px 24px; background-color: #1e3a8a; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Pay Contribution</a>
             </div>

@@ -10,8 +10,9 @@ const sendReminders = async () => {
 
         for (const contrib of pending) {
             if (contrib.user_id && contrib.user_id.email) {
-                console.log(`[BREVO] Sending reminder to ${contrib.user_id.full_name} (${contrib.user_id.email}) for month ${contrib.month}`);
-                await emailService.sendReminderEmail(contrib.user_id.email, contrib.user_id.full_name, contrib.month);
+                const amount = contrib.amount_due || 1000;
+                console.log(`[BREVO] Sending reminder to ${contrib.user_id.full_name} (${contrib.user_id.email}) for month ${contrib.month} (Amount: ₦${amount})`);
+                await emailService.sendReminderEmail(contrib.user_id.email, contrib.user_id.full_name, contrib.month, amount);
                 count++;
             }
         }
